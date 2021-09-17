@@ -1,4 +1,5 @@
 import * as React from "react";
+import { IpcService } from "../../electron/services/ipc-service";
 import styled from "styled-components";
 
 const Container = styled.div`
@@ -129,6 +130,13 @@ const StopButton = styled.button`
 `;
 
 const FileWatcher: React.FC = () => {
+  const openDialog = async () => {
+    const ipc = new IpcService();
+    console.log("open dialog");
+    const result = await ipc.send<{ filePaths: [] }>("file-open");
+    console.log(result.filePaths);
+  };
+
   return (
     <Container>
       <Header>
@@ -136,7 +144,7 @@ const FileWatcher: React.FC = () => {
           <Label>File</Label>
           <SmallLabel>Insert the file for which you detect changes</SmallLabel>
         </HeaderTextArea>
-        <AddFileButton>+</AddFileButton>
+        <AddFileButton onClick={openDialog}>+</AddFileButton>
       </Header>
 
       <ItemList>
