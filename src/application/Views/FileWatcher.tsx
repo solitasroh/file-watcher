@@ -1,6 +1,7 @@
 import * as React from "react";
 import { IpcService } from "../../electron/services/ipc-service";
 import styled from "styled-components";
+import { FileInfo } from "../../electron/services/FileWatcherService";
 
 const Container = styled.div`
   position: absolute;
@@ -68,6 +69,7 @@ const FileItemContainer = styled.div`
   background-color: #f4f4f4;
   padding: 10px;
   border-radius: 4px;
+  margin-bottom: 10px;
   height: 55px;
 `;
 const FileText = styled.label`
@@ -95,7 +97,7 @@ const StartButton = styled.button`
   border: 0px;
   width: 173px;
   height: 36px;
-  font-family: Roboto;
+  font-family: "Roboto";
   font-style: normal;
   font-weight: bold;
   font-size: 16px;
@@ -130,11 +132,23 @@ const StopButton = styled.button`
 `;
 
 const FileWatcher: React.FC = () => {
+  const [files, setfiles] = React.useState<Array<FileInfo>>([]);
+
+  React.useEffect(() => {
+    const ipc = new IpcService();
+
+    setInterval(() => {
+      ipc.send<{ filePaths: [] }>("file-lists").then((result) => {
+        setfiles(result.filePaths);
+      });
+    }, 1000);
+  }, []);
+
   const openDialog = async () => {
     const ipc = new IpcService();
-    console.log("open dialog");
     const result = await ipc.send<{ filePaths: [] }>("file-open");
     console.log(result.filePaths);
+    setfiles(result.filePaths);
   };
 
   return (
@@ -148,16 +162,18 @@ const FileWatcher: React.FC = () => {
       </Header>
 
       <ItemList>
-        <FileItemContainer>
-          <FileText>A2750LM.hex</FileText>
-          <FileDate>2021.10.15 10:25:12 AM</FileDate>
-        </FileItemContainer>
+        {files.map((f: FileInfo) => (
+          <FileItemContainer>
+            <FileText>{f.fileName}</FileText>
+            <FileDate>{f.mDate}</FileDate>
+          </FileItemContainer>
+        ))}
       </ItemList>
 
-      <ButtonConatiner>
+      {/* <ButtonConatiner>
         <StartButton>START SERVER</StartButton>
         <StopButton>STOP SERVER</StopButton>
-      </ButtonConatiner>
+      </ButtonConatiner> */}
     </Container>
   );
 };

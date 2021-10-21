@@ -1,12 +1,15 @@
+import { FileInfo, FileWatcherService } from "./../services/FileWatcherService";
 import { IpcRequest } from "../ipc/ipcRequest";
 import { IpcChannel } from "../ipc/ipcChannel";
 import { dialog } from "electron";
 import { OpenDialogReturnValue } from "electron/main";
 
 export interface FileOpenRequest extends IpcRequest {
-  fileName: string;
+  fileName: FileInfo;
 }
-
+export interface GetFilesRequest extends IpcRequest {
+  dummy: FileInfo;
+}
 export class FileOpenChannel implements IpcChannel<FileOpenRequest> {
   private name: string;
   constructor() {
@@ -24,13 +27,29 @@ export class FileOpenChannel implements IpcChannel<FileOpenRequest> {
     const returnValue: OpenDialogReturnValue = await dialog.showOpenDialog({
       properties: ["openFile", "multiSelections"],
     });
-
+    const service = FileWatcherService.getInstance();
     returnValue.filePaths.map((filePath) => {
-      console.log(`file path = ${filePath}`);
+      service.InsertWatchFile(filePath);
     });
 
     event.sender.send(request.responseChannel, {
-      filePaths: returnValue.filePaths,
+      filePaths: service.getFileInfos(),
+    });
+  }
+}
+
+export class GetFileChannel implements IpcChannel<GetFilesRequest> {
+  private name: string;
+  constructor() {
+    this.name = "file-lists";
+  }
+  getName(): string {
+    return this.name;
+  }
+  handle(event: Electron.IpcMainEvent, request: GetFilesRequest): void {
+    const service = FileWatcherService.getInstance();
+    event.sender.send(request.responseChannel, {
+      filePaths: service.getFileInfos(),
     });
   }
 }

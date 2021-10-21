@@ -2420,6 +2420,11 @@
     "delegates" "^1.0.0"
     "readable-stream" "^2.0.6"
 
+"argp@1.0.x":
+  "integrity" "sha1-sxxzB1rW1syx2MhqzWn/MAMFsZQ="
+  "resolved" "https://registry.npmjs.org/argp/-/argp-1.0.4.tgz"
+  "version" "1.0.4"
+
 "argparse@^1.0.7":
   "integrity" "sha512-o5Roy6tNG4SL/FOkCAN6RzjiakZS25RLYFrcMttJqbdd8BWrnA+fGz57iN5Pb06pvBGvl5gQ0B48dJlslXvoTg=="
   "resolved" "https://registry.npmjs.org/argparse/-/argparse-1.0.10.tgz"
@@ -9414,6 +9419,11 @@
   "resolved" "https://registry.npmjs.org/process/-/process-0.11.10.tgz"
   "version" "0.11.10"
 
+"progress-bar-formatter@^2.0.1":
+  "integrity" "sha1-DZfrsWRn4sIwg3NXIXa3w1UeVW4="
+  "resolved" "https://registry.npmjs.org/progress-bar-formatter/-/progress-bar-formatter-2.0.1.tgz"
+  "version" "2.0.1"
+
 "progress-stream@^1.1.0":
   "integrity" "sha1-LNPP6jO6OonJwSHsM0er6asSX3c="
   "resolved" "https://registry.npmjs.org/progress-stream/-/progress-stream-1.2.0.tgz"
@@ -10822,6 +10832,13 @@
     "define-property" "^0.2.5"
     "object-copy" "^0.1.0"
 
+"status-bar@2.0.x":
+  "integrity" "sha1-DSaAIixFfhLeN86+FDjdScTgbhQ="
+  "resolved" "https://registry.npmjs.org/status-bar/-/status-bar-2.0.3.tgz"
+  "version" "2.0.3"
+  dependencies:
+    "progress-bar-formatter" "^2.0.1"
+
 "statuses@>= 1.4.0 < 2", "statuses@>= 1.5.0 < 2", "statuses@~1.5.0":
   "integrity" "sha1-Fhx9rBd2Wf2YEfQ3cfqZOBR4Yow="
   "resolved" "https://registry.npmjs.org/statuses/-/statuses-1.5.0.tgz"
@@ -11269,6 +11286,14 @@
   "integrity" "sha1-f17oI66AUgfACvLfSoTsP8+lcLQ="
   "resolved" "https://registry.npmjs.org/text-table/-/text-table-0.2.0.tgz"
   "version" "0.2.0"
+
+"tftp@0.1.2":
+  "integrity" "sha1-lWdMCn/Ku1N1Wr7wutP55U/gt7U="
+  "resolved" "https://registry.npmjs.org/tftp/-/tftp-0.1.2.tgz"
+  "version" "0.1.2"
+  dependencies:
+    "argp" "1.0.x"
+    "status-bar" "2.0.x"
 
 "throat@^5.0.0":
   "integrity" "sha512-fcwX4mndzpLQKBS1DVYhGAcYaYt7vsHNIvQV+WXMvnow5cgjPphq5CaayLaGsjRdSCKZFNGt7/GYAuXaNOiYCA=="
