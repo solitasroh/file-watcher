@@ -1,8 +1,22 @@
 import * as ipc from "../ipc/ipcRequest";
 import { IpcRenderer } from "electron";
 
+type senderCallback = (channel: string, ...args: any[]) => void;
 export class IpcService {
+  private static instance: IpcService;
+  static getInstance(): IpcService {
+    if (this.instance == null) {
+      this.instance = new IpcService();
+    }
+    return this.instance;
+  }
+
+  private constructor() {
+    //this.initIpcRenderer();
+  }
+
   private ipcRenderer?: IpcRenderer;
+  private renderSendCallback? : senderCallback;
 
   public send<T>(channel: string, request: ipc.IpcRequest = {}): Promise<T> {
     if (!this.ipcRenderer) {
@@ -20,6 +34,28 @@ export class IpcService {
         resolve(response)
       );
     });
+  }
+
+  public on<T>(channel: string) : Promise<T> {
+    if (!this.ipcRenderer) {
+      this.initIpcRenderer();
+    }
+    const ipcRenderer = this.ipcRenderer;
+    return new Promise((resolve) => {
+      ipcRenderer.on(channel, (event, response) => {
+        resolve(response);
+      });
+    });
+  }
+
+  public registerCallback(senderFunction: senderCallback) : void  {
+    this.renderSendCallback = senderFunction;
+  }
+
+  public sendToRender(channel: string, ...args: any[]) : void {
+    if (this.renderSendCallback != null) {
+      this.renderSendCallback(channel, args);
+    }
   }
 
   private initIpcRenderer() {

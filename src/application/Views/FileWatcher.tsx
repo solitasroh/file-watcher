@@ -3,6 +3,7 @@ import { IpcService } from "../../electron/services/ipc-service";
 import styled from "styled-components";
 import { FileInfo } from "../../electron/services/FileWatcherService";
 
+
 const Container = styled.div`
   position: absolute;
   display: flex;
@@ -71,6 +72,12 @@ const FileItemContainer = styled.div`
   border-radius: 4px;
   margin-bottom: 10px;
   height: 55px;
+  :hover {
+    background-color: blue;
+  }
+  : active {
+    blackground-color: #f1f1f1;
+  }
 `;
 const FileText = styled.label`
   flex: 1;
@@ -133,22 +140,32 @@ const StopButton = styled.button`
 
 const FileWatcher: React.FC = () => {
   const [files, setfiles] = React.useState<Array<FileInfo>>([]);
+  const [selectFile, setSelectFile] = React.useState<FileInfo>();
 
   React.useEffect(() => {
-    const ipc = new IpcService();
+    const ipc = IpcService.getInstance();
+    ipc.on<{filePaths: [] }>('file-lists').then(result => {
+      setfiles(result.filePaths);
+    });
 
-    setInterval(() => {
-      ipc.send<{ filePaths: [] }>("file-lists").then((result) => {
-        setfiles(result.filePaths);
-      });
-    }, 1000);
+    ipc.send<{ filePaths: [] }>("file-lists").then((result) => {
+      setfiles(result.filePaths);
+    });
+
   }, []);
 
   const openDialog = async () => {
-    const ipc = new IpcService();
+    const ipc = IpcService.getInstance();
     const result = await ipc.send<{ filePaths: [] }>("file-open");
     console.log(result.filePaths);
     setfiles(result.filePaths);
+  };
+  const removeclick = async() => {
+    if (selectFile == null) 
+      return;
+    const ipc = IpcService.getInstance();
+    const result = await ipc.send<{fileInfos: [] }>("file-remove");
+    setfiles(result.fileInfos);
   };
 
   return (

@@ -7,9 +7,7 @@ import { OpenDialogReturnValue } from "electron/main";
 export interface FileOpenRequest extends IpcRequest {
   fileName: FileInfo;
 }
-export interface GetFilesRequest extends IpcRequest {
-  dummy: FileInfo;
-}
+
 export class FileOpenChannel implements IpcChannel<FileOpenRequest> {
   private name: string;
   constructor() {
@@ -32,22 +30,6 @@ export class FileOpenChannel implements IpcChannel<FileOpenRequest> {
       service.InsertWatchFile(filePath);
     });
 
-    event.sender.send(request.responseChannel, {
-      filePaths: service.getFileInfos(),
-    });
-  }
-}
-
-export class GetFileChannel implements IpcChannel<GetFilesRequest> {
-  private name: string;
-  constructor() {
-    this.name = "file-lists";
-  }
-  getName(): string {
-    return this.name;
-  }
-  handle(event: Electron.IpcMainEvent, request: GetFilesRequest): void {
-    const service = FileWatcherService.getInstance();
     event.sender.send(request.responseChannel, {
       filePaths: service.getFileInfos(),
     });

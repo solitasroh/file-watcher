@@ -1,6 +1,8 @@
 import { app } from "electron";
 import * as fs from "fs";
+import * as fsPromise from "fs/promises";
 import * as path from "path";
+import { IpcService } from "./ipc-service";
 
 export interface FileInfo {
   fileName: string;
@@ -9,39 +11,60 @@ export interface FileInfo {
 }
 
 export class FileWatcherService {
+  static TFTP_ROOT = path.join(app.getPath("userData"), "/tftpboot/");
+  static FILE_INFO = path.join(app.getPath("userData"), "files");
   static instance: FileWatcherService;
   private files: FileInfo[] = [];
 
   constructor() {
-    const rootPath = path.join(app.getPath("userData"), "/tftpboot/");
-
-    fs.mkdir(rootPath, (err) => {
-      console.log(`make dir error = ${err}`);
-    });
+    this.InitTFTPDir();
 
     if (!this.loadFileList()) {
       this.saveFileList();
     }
   }
 
+  private async InitTFTPDir(): Promise<void> {
+    try {
+      await fsPromise.access(FileWatcherService.TFTP_ROOT);
+    } catch (error) {
+      await fsPromise.mkdir(FileWatcherService.TFTP_ROOT);
+    }
+  }
+
+  private async IsValidFiles(filePath: string): Promise<boolean> {
+    try {
+      await fsPromise.access(filePath);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  private generateTftpFilePath(filePath: string): string {
+    return path.join(FileWatcherService.TFTP_ROOT, path.basename(filePath));
+  }
+
   private loadFileList(): boolean {
     try {
-      const dir = path.join(app.getPath("userData"), "files");
-      const buffer = fs.readFileSync(dir);
-      const bufferJson = buffer.toString();
-      const result = JSON.parse(bufferJson);
-      this.files = result;
-      this.files.forEach((fi) => {
-        this.watchFile(fi.filePath);
-        const dest = path.join(
-          app.getPath("userData"),
-          "/tftpboot/",
-          fi.fileName
-        );
-        fs.copyFile(fi.filePath, dest, (e) => {
-          if (e) console.log(`copy file error = ${e}`);
+      if (this.IsValidFiles(FileWatcherService.FILE_INFO)) {
+        const buffer = fs.readFileSync(FileWatcherService.FILE_INFO);
+        const bufferJson = buffer.toString();
+        const result = JSON.parse(bufferJson);
+        this.files = result;
+        this.files.forEach(async (fi) => {
+          this.watchFile(fi.filePath);
+          const dest = this.generateTftpFilePath(fi.filePath);
+
+          fs.copyFile(fi.filePath, dest, (e) => {
+            if (e) console.log(`copy file error = ${e}`);
+          });
+
+          const fileIcon = await app.getFileIcon(fi.filePath, {
+            size: "normal",
+          });
         });
-      });
+      }
     } catch (err) {
       console.log(err);
       return false;
@@ -54,8 +77,7 @@ export class FileWatcherService {
   private saveFileList(): boolean {
     try {
       const fileJson = JSON.stringify(this.files);
-      const dir = path.join(app.getPath("userData"), "files");
-      fs.writeFileSync(dir, fileJson);
+      fs.writeFileSync(FileWatcherService.FILE_INFO, fileJson);
     } catch (error) {
       console.log(error);
       return false;
@@ -88,34 +110,40 @@ export class FileWatcherService {
     }
     console.log("file is inserted successfully");
 
-    const dest = path.join(
-      app.getPath("userData"),
-      "/tftpboot/",
-      path.basename(file)
-    );
+    const dest = this.generateTftpFilePath(file);
 
-    console.log(`cp file ${dest}`);
+    console.log(`copy a file successfully. (${dest})`);
     this.files.push(fileInfo);
 
     fs.copyFile(file, dest, (e) => {
-      if (e) console.log(`copy file error = ${e}`);
+      if (e) console.log(`copy a file error = ${e}`);
     });
 
     this.watchFile(file);
     this.saveFileList();
   }
-
+  RemoveWatchFile(fileInfo: FileInfo): void {
+    try {
+      fs.unwatchFile(fileInfo.filePath);
+      const index = this.files.findIndex(
+        (f) => f.filePath == fileInfo.filePath
+      );
+      if (index > -1) {
+        this.files.slice(index);
+      }
+      fs.rmSync(this.generateTftpFilePath(fileInfo.filePath));
+      this.saveFileList();
+    } catch (error) {
+      console.log(error);
+    }
+  }
   private watchFile(file: string) {
     console.log(`watch ${file} file...`);
 
     fs.watchFile(file, (curr, prev) => {
       console.log(`file is changed. cp files.. (${curr.mtime}, ${prev.mtime})`);
       const stat = fs.statSync(file);
-      const dest = path.join(
-        app.getPath("userData"),
-        "/tftpboot/",
-        path.basename(file)
-      );
+      const dest = this.generateTftpFilePath(file);
 
       fs.copyFile(file, dest, (e) => {
         if (e) console.log(`copy file error = ${e}`);
