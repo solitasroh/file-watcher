@@ -11,7 +11,7 @@ export class TftpService {
   PORT = 69;
   BUF_SIZE = 512;
   private server: dgram.Socket;
-  readRequest: ReadRequest = new ReadRequest(this);
+  readRequest: ReadRequest;
 
   constructor() {
     this.server = dgram
@@ -20,13 +20,18 @@ export class TftpService {
         console.log(err);
       })
       .on("listening", this.listening)
-      .on("message", this.message);
+      .on("message", (msg, rInfo) => {
+        this.message(msg, rInfo);
+      });
+
+    this.readRequest = new ReadRequest();
   }
 
-  Write(buffer: Buffer, rInfo: dgram.RemoteInfo): void {
-    //console.log(`write = ${buffer.at(0)}`);
+  private Write(buffer: Buffer, rInfo: dgram.RemoteInfo): void {
     this.server.send(buffer, rInfo.port, rInfo.address, (err, bytes) => {
-      console.log(`send bytes = ${bytes} error = ${err}`);
+      if (err) {
+        console.log(`send bytes = ${bytes} error = ${err}`);
+      }
     });
   }
 
@@ -34,14 +39,30 @@ export class TftpService {
     console.log("listening");
   }
 
-  private message(msg: Buffer, rInfo: dgram.RemoteInfo): void {
+  private async message(msg: Buffer, rInfo: dgram.RemoteInfo): Promise<void> {
     const op = msg.readUInt16BE(0);
     if (op === 1) {
+      if (this.readRequest == null || this.readRequest === undefined) {
+        this.readRequest = new ReadRequest();
+      }
       this.readRequest.depacketizer(msg, rInfo);
-      this.readRequest.request(1);
+      try {
+        const respBuf = await this.readRequest.request(1);
+        this.Write(respBuf, rInfo);
+      } catch (err) {
+        console.log(err);
+      }
     } else if (op === 4) {
       const blockNumber = msg.readUInt16BE(2);
-      this.readRequest.request(blockNumber + 1);
+      try {
+        const respBuf = await this.readRequest.request(blockNumber + 1);
+        if (respBuf == null) {
+          return;
+        }
+        this.Write(respBuf, rInfo);
+      } catch (error) {
+        console.log(error);
+      }
     }
   }
 
