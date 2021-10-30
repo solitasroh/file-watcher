@@ -1,15 +1,10 @@
-import { IpcService } from "./../../electron/services/ipc-service";
-import { useRef, useEffect } from "react";
+import { IpcRendererEvent } from 'electron';
+import { useRef, useEffect } from 'react';
+import IpcService from '../../electron/services/ipc-service';
 
-type ipcRenderCallbackType = (
-  event: Electron.IpcRendererEvent,
-  ...args: any[]
-) => void;
+type ipcRenderCallbackType = (event: IpcRendererEvent, ...args: any[]) => void;
 
-export function usePolling(
-  channel: string,
-  callbackFunction: ipcRenderCallbackType
-): void {
+function usePolling(channel: string, callbackFunction: ipcRenderCallbackType): void {
   const savedHandler = useRef<ipcRenderCallbackType>();
 
   useEffect(() => {
@@ -17,7 +12,7 @@ export function usePolling(
   }, [callbackFunction]);
 
   useEffect(() => {
-    const listener = (event: Electron.IpcRendererEvent, ...args: any[]) => {
+    const listener = (event: IpcRendererEvent, ...args: any[]) => {
       savedHandler.current(event, ...args);
     };
 
@@ -29,3 +24,5 @@ export function usePolling(
     };
   }, [channel]);
 }
+
+export default usePolling;

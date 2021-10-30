@@ -1,8 +1,10 @@
-import * as ipc from "../ipc/ipcRequest";
-import { IpcRenderer } from "electron";
+import { IpcRenderer, IpcRendererEvent } from 'electron';
+import * as ipc from '../ipc/ipcRequest';
 
 type senderCallback = (channel: string, ...args: any[]) => void;
-export class IpcService {
+type ipcEventCallback = (event: IpcRendererEvent, ...args: any[]) => void;
+
+class IpcService {
   private static instance: IpcService;
 
   static getInstance(): IpcService {
@@ -17,7 +19,9 @@ export class IpcService {
   private renderSendCallback?: senderCallback;
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  private constructor() {}
+  private constructor() {
+    console.log('construct');
+  }
 
   public send<T>(channel: string, request: ipc.IpcRequest = {}): Promise<T> {
     if (!this.ipcRenderer) {
@@ -27,22 +31,15 @@ export class IpcService {
     if (!request.responseChannel) {
       request.responseChannel = `${channel}_response_${new Date().getTime()}`;
     }
-    const ipcRenderer = this.ipcRenderer;
+    const { ipcRenderer } = this;
     ipcRenderer.send(channel, request);
 
     return new Promise((resolve) => {
-      ipcRenderer.once(request.responseChannel, (event, response) =>
-        resolve(response)
-      );
+      ipcRenderer.once(request.responseChannel, (event, response) => resolve(response));
     });
   }
 
-  public on(
-    channel: string,
-    eventhandler: {
-      (event: Electron.IpcRendererEvent, ...args: any[]): void;
-    }
-  ): void {
+  public on(channel: string, eventhandler: ipcEventCallback): void {
     this.ipcRenderer.on(channel, eventhandler);
   }
 
@@ -60,19 +57,18 @@ export class IpcService {
     }
   }
 
-  public unregisterListener(
-    channel: string,
-    eventHandler: (...args: any[]) => void
-  ): void {
+  public unregisterListener(channel: string, eventHandler: (...args: any[]) => void): void {
     this.ipcRenderer.removeListener(channel, eventHandler);
   }
 
   private initIpcRenderer() {
-    console.log("init ipc renderers");
+    console.log('init ipc renderers');
     if (!window || !window.process || !window.require) {
-      throw new Error("Unable to require renderer process");
+      throw new Error('Unable to require renderer process');
     }
 
-    this.ipcRenderer = window.require("electron").ipcRenderer;
+    this.ipcRenderer = window.require('electron').ipcRenderer;
   }
 }
+
+export default IpcService;

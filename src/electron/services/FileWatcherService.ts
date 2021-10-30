@@ -1,9 +1,9 @@
-import { GET_FILE_LISTS } from "./../ipc-channel.elec";
-import { app } from "electron";
-import * as fs from "fs";
-import * as fsPromise from "fs/promises";
-import * as path from "path";
-import { IpcService } from "./ipc-service";
+import { app } from 'electron';
+import * as fs from 'fs';
+import * as fsPromise from 'fs/promises';
+import * as path from 'path';
+import { GET_FILE_LISTS } from '../ipc-channel.elec';
+import IpcService from './ipc-service';
 
 export interface FileInfo {
   fileName: string;
@@ -12,20 +12,23 @@ export interface FileInfo {
 }
 
 export class FileWatcherService {
-  static TFTP_ROOT = path.join(app.getPath("userData"), "/tftpboot/");
-  static FILE_INFO = path.join(app.getPath("userData"), "files");
+  static TFTP_ROOT = path.join(app.getPath('userData'), '/tftpboot/');
+
+  static FILE_INFO = path.join(app.getPath('userData'), 'files');
+
   static instance: FileWatcherService;
+
   private files: FileInfo[] = [];
 
   constructor() {
-    this.InitTFTPDir();
+    FileWatcherService.InitTFTPDir();
 
     if (!this.loadFileList()) {
       this.saveFileList();
     }
   }
 
-  private async InitTFTPDir(): Promise<void> {
+  private static async InitTFTPDir(): Promise<void> {
     try {
       await fsPromise.access(FileWatcherService.TFTP_ROOT);
     } catch (error) {
@@ -33,7 +36,7 @@ export class FileWatcherService {
     }
   }
 
-  private async IsValidFiles(filePath: string): Promise<boolean> {
+  private static async IsValidFiles(filePath: string): Promise<boolean> {
     try {
       await fsPromise.access(filePath);
       return true;
@@ -42,29 +45,31 @@ export class FileWatcherService {
     }
   }
 
-  private generateTftpFilePath(filePath: string): string {
+  private static generateTftpFilePath(filePath: string): string {
     return path.join(FileWatcherService.TFTP_ROOT, path.basename(filePath));
   }
 
   private loadFileList(): boolean {
     try {
-      if (this.IsValidFiles(FileWatcherService.FILE_INFO)) {
+      if (FileWatcherService.IsValidFiles(FileWatcherService.FILE_INFO)) {
         const buffer = fs.readFileSync(FileWatcherService.FILE_INFO);
         const bufferJson = buffer.toString();
         const result = JSON.parse(bufferJson);
         this.files = result;
         this.files.forEach(async (fi) => {
           this.watchFile(fi.filePath);
-          const dest = this.generateTftpFilePath(fi.filePath);
+          const dest = FileWatcherService.generateTftpFilePath(fi.filePath);
 
           fs.copyFile(fi.filePath, dest, (e) => {
             if (e) console.log(`copy file error = ${e}`);
           });
 
-          const fileIcon = await app.getFileIcon(fi.filePath, {
-            size: "normal",
-          });
+          // const fileIcon = await app.getFileIcon(fi.filePath, {
+          //   size: 'normal',
+          // });
           const fileStats = await fs.statSync(fi.filePath);
+
+          // eslint-disable-next-line no-param-reassign
           fi.mDate = fileStats.mtime.toLocaleString();
         });
       }
@@ -73,7 +78,7 @@ export class FileWatcherService {
       return false;
     }
 
-    console.log("load files successfully");
+    console.log('load files successfully');
     return true;
   }
 
@@ -86,16 +91,18 @@ export class FileWatcherService {
       return false;
     }
 
-    console.log("save files successfully");
+    console.log('save files successfully');
     return true;
   }
 
   getFilesName(): Array<string> {
     return this.files.map((fi) => path.basename(fi.filePath));
   }
+
   getFileInfos(): Array<FileInfo> {
     return this.files;
   }
+
   InsertWatchFile(file: string): void {
     const isExists = this.files.find((f) => f.filePath === file);
 
@@ -111,9 +118,9 @@ export class FileWatcherService {
     if (isExists) {
       return;
     }
-    console.log("file is inserted successfully");
+    console.log('file is inserted successfully');
 
-    const dest = this.generateTftpFilePath(file);
+    const dest = FileWatcherService.generateTftpFilePath(file);
 
     console.log(`copy a file successfully. (${dest})`);
     this.files.push(fileInfo);
@@ -125,28 +132,28 @@ export class FileWatcherService {
     this.watchFile(file);
     this.saveFileList();
   }
+
   RemoveWatchFile(fileInfo: FileInfo): void {
     try {
       fs.unwatchFile(fileInfo.filePath);
-      const index = this.files.findIndex(
-        (f) => f.filePath == fileInfo.filePath
-      );
+      const index = this.files.findIndex((f) => f.filePath === fileInfo.filePath);
       if (index > -1) {
         this.files.slice(index);
       }
-      fs.rmSync(this.generateTftpFilePath(fileInfo.filePath));
+      fs.rmSync(FileWatcherService.generateTftpFilePath(fileInfo.filePath));
       this.saveFileList();
     } catch (error) {
       console.log(error);
     }
   }
+
   private watchFile(file: string) {
     console.log(`watch ${file} file...`);
 
     fs.watchFile(file, (curr, prev) => {
       console.log(`file is changed. cp files.. (${curr.mtime}, ${prev.mtime})`);
       const stat = fs.statSync(file);
-      const dest = this.generateTftpFilePath(file);
+      const dest = FileWatcherService.generateTftpFilePath(file);
 
       fs.copyFile(file, dest, (e) => {
         if (e) console.log(`copy file error = ${e}`);

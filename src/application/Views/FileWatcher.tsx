@@ -1,9 +1,11 @@
-import * as React from "react";
-import { IpcService } from "../../electron/services/ipc-service";
+import React, { useState, useEffect, FunctionComponent } from "react";
+
 import styled from "styled-components";
+import  IpcService  from "../../electron/services/ipc-service";
 import { FileInfo } from "../../electron/services/FileWatcherService";
 import { GET_FILE_LISTS } from "../ipc-channel.app";
-import { usePolling } from "../hooks/usePolling";
+import  usePolling  from "../hooks/usePolling";
+
 
 const Container = styled.div`
   position: absolute;
@@ -29,11 +31,11 @@ const ItemList = styled.div`
   flex: 1;
 `;
 
-const ButtonConatiner = styled.div`
-  display: flex;
-  justify-content: space-between;
-  padding: 10px;
-`;
+// const ButtonConatiner = styled.div`
+//   display: flex;
+//   justify-content: space-between;
+//   padding: 10px;
+// `;
 
 const HeaderTextArea = styled.div`
   display: flex;
@@ -99,52 +101,51 @@ const FileDate = styled.label`
   align-self: flex-end;
 `;
 
-const StartButton = styled.button`
-  background: #06e05d;
-  border-radius: 4px;
-  border: 0px;
-  width: 173px;
-  height: 36px;
-  font-family: "Roboto";
-  font-style: normal;
-  font-weight: bold;
-  font-size: 16px;
-  text-align: center;
-  color: white;
-  :hover {
-    background-color: #06e05dcb;
-  }
-  :active {
-    background-color: #06e05d62;
-  }
-`;
+// const StartButton = styled.button`
+//   background: #06e05d;
+//   border-radius: 4px;
+//   border: 0px;
+//   width: 173px;
+//   height: 36px;
+//   font-family: "Roboto";
+//   font-style: normal;
+//   font-weight: bold;
+//   font-size: 16px;
+//   text-align: center;
+//   color: white;
+//   :hover {
+//     background-color: #06e05dcb;
+//   }
+//   :active {
+//     background-color: #06e05d62;
+//   }
+// `;
 
-const StopButton = styled.button`
-  background: #f93434;
-  border-radius: 4px;
-  border: 0px;
-  width: 173px;
-  height: 36px;
-  font-family: Roboto;
-  font-style: normal;
-  font-weight: bold;
-  font-size: 16px;
-  text-align: center;
-  color: white;
-  :hover {
-    background-color: #f93434cb;
-  }
-  :active {
-    background-color: #f9343462;
-  }
-`;
+// const StopButton = styled.button`
+//   background: #f93434;
+//   border-radius: 4px;
+//   border: 0px;
+//   width: 173px;
+//   height: 36px;
+//   font-family: Roboto;
+//   font-style: normal;
+//   font-weight: bold;
+//   font-size: 16px;
+//   text-align: center;
+//   color: white;
+//   :hover {
+//     background-color: #f93434cb;
+//   }
+//   :active {
+//     background-color: #f9343462;
+//   }
+// `;
 
-const FileWatcher: React.FC = () => {
-  const [files, setfiles] = React.useState<Array<FileInfo>>([]);
-  const [selectFile, setSelectFile] = React.useState<FileInfo>();
+const FileWatcher: FunctionComponent = () => {
+  const [files, setfiles] = useState<Array<FileInfo>>([]);
   const ipc = IpcService.getInstance();
 
-  React.useEffect(() => {
+  useEffect(() => {
     ipc.send<{ filePaths: [] }>(GET_FILE_LISTS).then((result) => {
       setfiles(result.filePaths);
     });
@@ -156,18 +157,17 @@ const FileWatcher: React.FC = () => {
   });
 
   const openDialog = async () => {
-    const ipc = IpcService.getInstance();
     const result = await ipc.send<{ filePaths: [] }>("file-open");
     console.log(result.filePaths);
     setfiles(result.filePaths);
   };
-  const removeclick = async (fileInfo: FileInfo) => {
-    if (selectFile == null) return;
-    const ipc = IpcService.getInstance();
+  // const removeclick = async (fileInfo: FileInfo) => {
+  //   if (selectFile == null) return;
+  //   const ipc = IpcService.getInstance();
 
-    const result = await ipc.send<{ fileInfos: [] }>("file-remove");
-    setfiles(result.fileInfos);
-  };
+  //   const result = await ipc.send<{ fileInfos: [] }>("file-remove");
+  //   setfiles(result.fileInfos);
+  // };
 
   return (
     <Container>

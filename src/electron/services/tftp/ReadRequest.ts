@@ -1,32 +1,30 @@
-import { join } from "path";
-import * as dgram from "dgram";
-import { TftpService } from "./../tftp-service";
-import * as fs from "fs/promises";
-import { app } from "electron";
+import { join } from 'path';
+import * as dgram from 'dgram';
+import * as fs from 'fs/promises';
+import { app } from 'electron';
+import ErrorPacket from './ErrorPacket';
 
 const BLOCK_SZ = 512;
-const OP_CODE_SZ = 2;
 const OP_CODE__DATA = 3;
-const ROOT = join(app.getPath("userData"), "/tftpboot/");
-const getStringFromBuffer = (
-  message: Buffer,
-  startPos: number
-): { str: string; nextPos: number } => {
+const ROOT = join(app.getPath('userData'), '/tftpboot/');
+
+const getStringFromBuffer = (message: Buffer, startPos: number): { str: string; nextPos: number } => {
   let byte = 0;
-  let asciiStr = "";
+  let asciiStr = '';
   let i = startPos;
-  while ((byte = message[i]) !== 0) {
+  byte = message[i];
+
+  while (byte !== 0) {
     if (byte === undefined) {
-      console.log("error byte");
-      throw Error("EBADMSG");
+      throw Error('EBADMSG');
     }
 
     asciiStr += String.fromCharCode(byte);
-    i++;
+    i += 1;
+    byte = message[i];
 
     if (i > message.length) {
-      console.log("error message length");
-      throw Error("EMSGSZ");
+      throw Error('EMSGSZ');
     }
   }
 
@@ -36,30 +34,23 @@ const getStringFromBuffer = (
   };
 };
 
-export class ErrorPacket {
-  packetizer(err: string, errNo: number): Buffer {
-    const recvBuf = Buffer.alloc(5 + err.length);
-    recvBuf.writeUInt16BE(5);
-    recvBuf.writeUInt16BE(errNo, 2);
-    recvBuf.write(err, 4, "ascii");
-    recvBuf[recvBuf.length - 1] = 0;
-    console.log(`send error packet`);
-    return recvBuf;
-  }
-}
-
-export class ReadRequest {
+class ReadRequest {
   fileName: string;
+
   readFilePos: number;
+
   opCode: number;
+
   mode: string;
 
   private fd: fs.FileHandle;
+
   private rInfo: dgram.RemoteInfo;
+
   private totalBlockCount: number;
 
   constructor() {
-    console.log("ctr request");
+    console.log('ctr request');
   }
 
   depacketizer(message: Buffer, rInfo: dgram.RemoteInfo): void {
@@ -72,17 +63,14 @@ export class ReadRequest {
   }
 
   async request(blockNum?: number): Promise<Buffer> {
-    if (blockNum == 1) {
+    if (blockNum === 1) {
       try {
         const s = await fs.stat(this.fileName);
         this.totalBlockCount = Math.ceil(s.size / BLOCK_SZ);
-        console.log(
-          `get file request: ${this.fileName} (${this.totalBlockCount})`
-        );
-        this.fd = await fs.open(this.fileName, "r");
+        console.log(`get file request: ${this.fileName} (${this.totalBlockCount})`);
+        this.fd = await fs.open(this.fileName, 'r');
       } catch (error) {
-        const err = new ErrorPacket();
-        return err.packetizer("file is not found", 1);
+        return ErrorPacket.packetizer('file is not found', 1);
       }
     }
 
@@ -116,3 +104,5 @@ export class ReadRequest {
     }
   }
 }
+
+export default ReadRequest;

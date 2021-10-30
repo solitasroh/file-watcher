@@ -1,14 +1,12 @@
-import * as React from "react";
+import React, { FC } from "react";
 import GlobalStyles from "./globalStyles";
 import FileWatcher from "./Views/FileWatcher";
 
-const App: React.FC = () => {
-  return (
-    <React.Fragment>
+const App: FC = () => (
+    <>
       <FileWatcher />
-      <GlobalStyles></GlobalStyles>
-    </React.Fragment>
+      <GlobalStyles />
+    </>
   );
-};
 
 export default App;

@@ -1,5 +1,5 @@
-import { IpcMainEvent } from "electron";
-import { IpcRequest } from "./ipcRequest";
+import { IpcMainEvent } from 'electron';
+import { IpcRequest } from './ipcRequest';
 
 export interface IpcChannel<T extends IpcRequest> {
   getName(): string;

@@ -1,26 +1,27 @@
-import dgram from "dgram";
-import { app } from "electron";
-import * as path from "path";
-import { ReadRequest } from "./tftp/ReadRequest";
+import dgram from 'dgram';
+import { app } from 'electron';
+import * as path from 'path';
+import ReadRequest from './tftp/ReadRequest';
 
-interface tftpPacket {
-  type: number;
-}
-
-export class TftpService {
+class TftpService {
   PORT = 69;
+
   BUF_SIZE = 512;
+
   private server: dgram.Socket;
+
   readRequest: ReadRequest;
 
   constructor() {
     this.server = dgram
-      .createSocket("udp4")
-      .on("error", (err: Error) => {
+      .createSocket('udp4')
+      .on('error', (err: Error) => {
         console.log(err);
       })
-      .on("listening", this.listening)
-      .on("message", (msg, rInfo) => {
+      .on('listening', () => {
+        console.log('listening...');
+      })
+      .on('message', (msg, rInfo) => {
         this.message(msg, rInfo);
       });
 
@@ -33,10 +34,6 @@ export class TftpService {
         console.log(`send bytes = ${bytes} error = ${err}`);
       }
     });
-  }
-
-  private listening(): void {
-    console.log("listening");
   }
 
   private async message(msg: Buffer, rInfo: dgram.RemoteInfo): Promise<void> {
@@ -67,8 +64,10 @@ export class TftpService {
   }
 
   Start(): void {
-    const ROOT = path.join(app.getPath("userData"), "/tftpboot/");
+    const ROOT = path.join(app.getPath('userData'), '/tftpboot/');
     console.log(`server start (port: ${this.PORT}, dir: ${ROOT})`);
     this.server.bind(this.PORT);
   }
 }
+
+export default TftpService;

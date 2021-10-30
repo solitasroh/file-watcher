@@ -1,35 +1,40 @@
-import { FileWatcherService } from "./services/FileWatcherService";
-import { TftpService } from "./services/tftp-service";
-import { app, BrowserWindow, ipcMain } from "electron";
-import { IpcChannel } from "./ipc/ipcChannel";
-import { IpcRequest } from "./ipc/ipcRequest";
-import { FileOpenChannel } from "./channel/FileOpenChannel";
-import { IpcService } from "./services/ipc-service";
-import { GetFileChannel } from "./channel/GetFileChannel";
-import { FileRemoveChannel } from "./channel/FileRemoveChannel";
+import { app, BrowserWindow, ipcMain } from 'electron';
+import { FileWatcherService } from './services/FileWatcherService';
+import TftpService from './services/tftp-service';
+import { IpcChannel } from './ipc/ipcChannel';
+import { IpcRequest } from './ipc/ipcRequest';
+import { FileOpenChannel } from './channel/FileOpenChannel';
+import IpcService from './services/ipc-service';
+import { GetFileChannel } from './channel/GetFileChannel';
+import FileRemoveChannel from './channel/FileRemoveChannel';
+
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
-if (require("electron-squirrel-startup")) {
-  // eslint-disable-line global-require
+// eslint-disable-next-line global-require
+if (require('electron-squirrel-startup')) {
   app.quit();
 }
 
 class Main {
   private mainWindow: BrowserWindow;
+
   private tftpService: TftpService;
+
   private fileWatcherService: FileWatcherService;
+
   private ipcService: IpcService;
+
   init(ipcChannels: IpcChannel<IpcRequest>[]) {
     this.tftpService = new TftpService();
     this.fileWatcherService = FileWatcherService.getInstance();
 
-    app.on("ready", (): void => {
+    app.on('ready', (): void => {
       this.createWindow();
     });
 
-    app.on("window-all-closed", this.onWindowClosed);
-    app.on("activate", this.onActivate);
+    app.on('window-all-closed', this.onWindowClosed);
+    app.on('activate', this.onActivate);
 
     this.registerIpcChannels(ipcChannels);
 
@@ -37,7 +42,7 @@ class Main {
   }
 
   private onWindowClosed = (): void => {
-    if (process.platform !== "darwin") {
+    if (process.platform !== 'darwin') {
       app.quit();
     }
   };
@@ -53,7 +58,7 @@ class Main {
   private createWindow() {
     this.mainWindow = new BrowserWindow({
       height: 600,
-      width: 800,
+      width: 360,
       webPreferences: {
         nodeIntegration: true,
         contextIsolation: false,
@@ -63,7 +68,7 @@ class Main {
     // and load the index.html of the app.
     this.mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
     // Open the DevTools.
-    this.mainWindow.webContents.openDevTools({ mode: "detach" });
+    this.mainWindow.webContents.openDevTools({ mode: 'detach' });
     this.ipcService = IpcService.getInstance();
     this.ipcService.registerCallback((channel, ...args) => {
       console.log(args);
@@ -71,19 +76,9 @@ class Main {
     });
   }
 
-  private registerIpcChannels = (
-    ipcChannels: IpcChannel<IpcRequest>[]
-  ): void => {
-    ipcChannels.forEach((channel) =>
-      ipcMain.on(channel.getName(), (event, request) =>
-        channel.handle(event, request)
-      )
-    );
+  private registerIpcChannels = (ipcChannels: IpcChannel<IpcRequest>[]): void => {
+    ipcChannels.forEach((channel) => ipcMain.on(channel.getName(), (event, request) => channel.handle(event, request)));
   };
 }
 
-new Main().init([
-  new FileOpenChannel(),
-  new GetFileChannel(),
-  new FileRemoveChannel(),
-]);
+new Main().init([new FileOpenChannel(), new GetFileChannel(), new FileRemoveChannel()]);

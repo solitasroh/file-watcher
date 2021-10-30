@@ -1,38 +1,33 @@
-import { IpcChannel } from "../ipc/ipcChannel";
-import { IpcRequest } from "../ipc/ipcRequest";
-import { FileInfo, FileWatcherService } from "../services/FileWatcherService";
+import { IpcMainEvent } from 'electron';
+import { IpcChannel } from '../ipc/ipcChannel';
+import { FileWatcherService } from '../services/FileWatcherService';
+import { FileRemoveRequest } from './FileRemoveRequest';
 
-export interface FileRemoveRequest extends IpcRequest {
-  fileInfo: FileInfo;
-}
-
-export class FileRemoveArgs implements FileRemoveRequest {
-  constructor(fileInfo: FileInfo) {
-    this.fileInfo = fileInfo;
-  }
-  fileInfo: FileInfo;
-  responseChannel?: string;
-}
-
-export class FileRemoveChannel implements IpcChannel<FileRemoveRequest> {
+class FileRemoveChannel implements IpcChannel<FileRemoveRequest> {
   private name: string;
+
+  private fileService?: FileWatcherService;
+
   constructor() {
-    this.name = "file-remove";
+    this.name = 'file-remove';
+    this.fileService = FileWatcherService.getInstance();
   }
+
   getName(): string {
     return this.name;
   }
 
-  handle(event: Electron.IpcMainEvent, request: FileRemoveRequest): void {
+  handle(event: IpcMainEvent, request: FileRemoveRequest): void {
     try {
-      const fileService = FileWatcherService.getInstance();
-      fileService.RemoveWatchFile(request.fileInfo);
+      this.fileService.RemoveWatchFile(request.fileInfo);
 
       event.sender.send(request.responseChannel, {
-        fileInfos: fileService.getFileInfos(),
+        fileInfos: this.fileService.getFileInfos(),
       });
     } catch (err) {
       console.log(err);
     }
   }
 }
+
+export default FileRemoveChannel;
