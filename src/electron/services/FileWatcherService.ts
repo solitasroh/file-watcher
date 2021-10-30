@@ -1,3 +1,4 @@
+import { GET_FILE_LISTS } from "./../ipc-channel.elec";
 import { app } from "electron";
 import * as fs from "fs";
 import * as fsPromise from "fs/promises";
@@ -63,6 +64,8 @@ export class FileWatcherService {
           const fileIcon = await app.getFileIcon(fi.filePath, {
             size: "normal",
           });
+          const fileStats = await fs.statSync(fi.filePath);
+          fi.mDate = fileStats.mtime.toLocaleString();
         });
       }
     } catch (err) {
@@ -155,6 +158,11 @@ export class FileWatcherService {
       } catch (e) {
         console.log(e);
       }
+
+      const ipcService = IpcService.getInstance();
+      ipcService.sendToRender(GET_FILE_LISTS, {
+        files: this.files,
+      });
     });
   }
 

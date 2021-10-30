@@ -2,7 +2,8 @@ import * as React from "react";
 import { IpcService } from "../../electron/services/ipc-service";
 import styled from "styled-components";
 import { FileInfo } from "../../electron/services/FileWatcherService";
-
+import { GET_FILE_LISTS } from "../ipc-channel.app";
+import { usePolling } from "../hooks/usePolling";
 
 const Container = styled.div`
   position: absolute;
@@ -75,7 +76,7 @@ const FileItemContainer = styled.div`
   :hover {
     background-color: blue;
   }
-  : active {
+  :active {
     blackground-color: #f1f1f1;
   }
 `;
@@ -141,18 +142,18 @@ const StopButton = styled.button`
 const FileWatcher: React.FC = () => {
   const [files, setfiles] = React.useState<Array<FileInfo>>([]);
   const [selectFile, setSelectFile] = React.useState<FileInfo>();
+  const ipc = IpcService.getInstance();
 
   React.useEffect(() => {
-    const ipc = IpcService.getInstance();
-    ipc.on<{filePaths: [] }>('file-lists').then(result => {
-      setfiles(result.filePaths);
-    });
-
     ipc.send<{ filePaths: [] }>("file-lists").then((result) => {
       setfiles(result.filePaths);
     });
-
   }, []);
+
+  usePolling(GET_FILE_LISTS, (event, rest) => {
+    console.log(`result files ${files}`);
+    setfiles(rest.files);
+  });
 
   const openDialog = async () => {
     const ipc = IpcService.getInstance();
@@ -160,11 +161,11 @@ const FileWatcher: React.FC = () => {
     console.log(result.filePaths);
     setfiles(result.filePaths);
   };
-  const removeclick = async() => {
-    if (selectFile == null) 
-      return;
+  const removeclick = async (fileInfo: FileInfo) => {
+    if (selectFile == null) return;
     const ipc = IpcService.getInstance();
-    const result = await ipc.send<{fileInfos: [] }>("file-remove");
+
+    const result = await ipc.send<{ fileInfos: [] }>("file-remove");
     setfiles(result.fileInfos);
   };
 

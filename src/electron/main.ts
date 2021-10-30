@@ -43,11 +43,14 @@ class Main {
     // On OS X it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) {
-      this.createWindow();
+      //this.createWindow();
     }
   }
 
-  private createWindow() {
+  private createWindow(
+    event: Electron.Event,
+    launchInfo: Record<string, any> | Electron.NotificationResponse
+  ) {
     this.mainWindow = new BrowserWindow({
       height: 600,
       width: 800,
@@ -62,7 +65,13 @@ class Main {
     // Open the DevTools.
     this.mainWindow.webContents.openDevTools({ mode: "detach" });
     this.ipcService = IpcService.getInstance();
-    this.ipcService.registerCallback(this.mainWindow.webContents.send);
+    this.ipcService.registerCallback((channel, ...args) => {
+      console.log(args);
+      this.mainWindow.webContents.send(channel, ...args);
+    });
+    this.ipcService.registerRemoveCallback((channel) => {
+      this.mainWindow.webContents.removeAllListeners();
+    });
   }
 
   private registerIpcChannels = (

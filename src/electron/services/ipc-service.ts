@@ -2,6 +2,7 @@ import * as ipc from "../ipc/ipcRequest";
 import { IpcRenderer } from "electron";
 
 type senderCallback = (channel: string, ...args: any[]) => void;
+type unregisterCallback = (channel: string) => void;
 export class IpcService {
   private static instance: IpcService;
   static getInstance(): IpcService {
@@ -16,8 +17,8 @@ export class IpcService {
   }
 
   private ipcRenderer?: IpcRenderer;
-  private renderSendCallback? : senderCallback;
-
+  private renderSendCallback?: senderCallback;
+  private unregisterCallbackFunc?: unregisterCallback;
   public send<T>(channel: string, request: ipc.IpcRequest = {}): Promise<T> {
     if (!this.ipcRenderer) {
       this.initIpcRenderer();
@@ -36,7 +37,7 @@ export class IpcService {
     });
   }
 
-  public on<T>(channel: string) : Promise<T> {
+  public on<T>(channel: string): Promise<T> {
     if (!this.ipcRenderer) {
       this.initIpcRenderer();
     }
@@ -47,15 +48,40 @@ export class IpcService {
       });
     });
   }
+  public on2(
+    channel: string,
+    eventhandler: {
+      (event: any, rest: any): void;
+      (event: Electron.IpcRendererEvent, ...args: any[]): void;
+    }
+  ): void {
+    this.ipcRenderer.on(channel, eventhandler);
+  }
 
-  public registerCallback(senderFunction: senderCallback) : void  {
+  public registerCallback(senderFunction: senderCallback): void {
     this.renderSendCallback = senderFunction;
   }
 
-  public sendToRender(channel: string, ...args: any[]) : void {
+  public sendToRender(channel: string, ...args: unknown[]): void {
     if (this.renderSendCallback != null) {
-      this.renderSendCallback(channel, args);
+      try {
+        console.log("send to render");
+        this.renderSendCallback(channel, ...args);
+      } catch (error) {
+        console.log(error);
+      }
     }
+  }
+
+  public registerRemoveCallback(callback: unregisterCallback): void {
+    this.unregisterCallbackFunc = callback;
+  }
+
+  public unregister(
+    channel: string,
+    eventHandler: (...args: any[]) => void
+  ): void {
+    this.ipcRenderer.removeListener(channel, eventHandler);
   }
 
   private initIpcRenderer() {
