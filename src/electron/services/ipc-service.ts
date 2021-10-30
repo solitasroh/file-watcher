@@ -2,9 +2,9 @@ import * as ipc from "../ipc/ipcRequest";
 import { IpcRenderer } from "electron";
 
 type senderCallback = (channel: string, ...args: any[]) => void;
-type unregisterCallback = (channel: string) => void;
 export class IpcService {
   private static instance: IpcService;
+
   static getInstance(): IpcService {
     if (this.instance == null) {
       this.instance = new IpcService();
@@ -12,13 +12,13 @@ export class IpcService {
     return this.instance;
   }
 
-  private constructor() {
-    //this.initIpcRenderer();
-  }
-
   private ipcRenderer?: IpcRenderer;
+
   private renderSendCallback?: senderCallback;
-  private unregisterCallbackFunc?: unregisterCallback;
+
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  private constructor() {}
+
   public send<T>(channel: string, request: ipc.IpcRequest = {}): Promise<T> {
     if (!this.ipcRenderer) {
       this.initIpcRenderer();
@@ -37,21 +37,9 @@ export class IpcService {
     });
   }
 
-  public on<T>(channel: string): Promise<T> {
-    if (!this.ipcRenderer) {
-      this.initIpcRenderer();
-    }
-    const ipcRenderer = this.ipcRenderer;
-    return new Promise((resolve) => {
-      ipcRenderer.on(channel, (event, response) => {
-        resolve(response);
-      });
-    });
-  }
-  public on2(
+  public on(
     channel: string,
     eventhandler: {
-      (event: any, rest: any): void;
       (event: Electron.IpcRendererEvent, ...args: any[]): void;
     }
   ): void {
@@ -62,10 +50,9 @@ export class IpcService {
     this.renderSendCallback = senderFunction;
   }
 
-  public sendToRender(channel: string, ...args: unknown[]): void {
+  public sendToRender(channel: string, ...args: any[]): void {
     if (this.renderSendCallback != null) {
       try {
-        console.log("send to render");
         this.renderSendCallback(channel, ...args);
       } catch (error) {
         console.log(error);
@@ -73,11 +60,7 @@ export class IpcService {
     }
   }
 
-  public registerRemoveCallback(callback: unregisterCallback): void {
-    this.unregisterCallbackFunc = callback;
-  }
-
-  public unregister(
+  public unregisterListener(
     channel: string,
     eventHandler: (...args: any[]) => void
   ): void {
@@ -85,6 +68,7 @@ export class IpcService {
   }
 
   private initIpcRenderer() {
+    console.log("init ipc renderers");
     if (!window || !window.process || !window.require) {
       throw new Error("Unable to require renderer process");
     }

@@ -17,15 +17,15 @@ export function usePolling(
   }, [callbackFunction]);
 
   useEffect(() => {
-    const eventHandler = (event: Electron.IpcRendererEvent, ...args: any[]) => {
+    const listener = (event: Electron.IpcRendererEvent, ...args: any[]) => {
       savedHandler.current(event, ...args);
     };
 
     const ipcService = IpcService.getInstance();
-    ipcService.on2(channel, eventHandler);
+    ipcService.on(channel, listener);
 
     return () => {
-      ipcService.unregister(channel, eventHandler);
+      ipcService.unregisterListener(channel, listener);
     };
   }, [channel]);
 }

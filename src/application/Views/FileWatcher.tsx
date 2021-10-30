@@ -74,10 +74,10 @@ const FileItemContainer = styled.div`
   margin-bottom: 10px;
   height: 55px;
   :hover {
-    background-color: blue;
+    background-color: #77a0c2c0;
   }
   :active {
-    blackground-color: #f1f1f1;
+    background-color: #f1f1f1;
   }
 `;
 const FileText = styled.label`
@@ -145,7 +145,7 @@ const FileWatcher: React.FC = () => {
   const ipc = IpcService.getInstance();
 
   React.useEffect(() => {
-    ipc.send<{ filePaths: [] }>("file-lists").then((result) => {
+    ipc.send<{ filePaths: [] }>(GET_FILE_LISTS).then((result) => {
       setfiles(result.filePaths);
     });
   }, []);

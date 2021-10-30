@@ -24,7 +24,10 @@ class Main {
     this.tftpService = new TftpService();
     this.fileWatcherService = FileWatcherService.getInstance();
 
-    app.on("ready", this.createWindow);
+    app.on("ready", (): void => {
+      this.createWindow();
+    });
+
     app.on("window-all-closed", this.onWindowClosed);
     app.on("activate", this.onActivate);
 
@@ -43,14 +46,11 @@ class Main {
     // On OS X it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) {
-      //this.createWindow();
+      this.createWindow();
     }
   }
 
-  private createWindow(
-    event: Electron.Event,
-    launchInfo: Record<string, any> | Electron.NotificationResponse
-  ) {
+  private createWindow() {
     this.mainWindow = new BrowserWindow({
       height: 600,
       width: 800,
@@ -68,9 +68,6 @@ class Main {
     this.ipcService.registerCallback((channel, ...args) => {
       console.log(args);
       this.mainWindow.webContents.send(channel, ...args);
-    });
-    this.ipcService.registerRemoveCallback((channel) => {
-      this.mainWindow.webContents.removeAllListeners();
     });
   }
 
