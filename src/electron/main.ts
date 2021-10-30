@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, nativeImage } from 'electron';
 import { FileWatcherService } from './services/FileWatcherService';
 import TftpService from './services/tftp-service';
 import { IpcChannel } from './ipc/ipcChannel';
@@ -56,6 +56,9 @@ class Main {
   }
 
   private createWindow() {
+    const iconImage = nativeImage.createFromPath('./src/assets/icons/win/icon.ico');
+    console.log(iconImage);
+
     this.mainWindow = new BrowserWindow({
       height: 600,
       width: 360,
@@ -64,6 +67,7 @@ class Main {
         contextIsolation: false,
         nativeWindowOpen: true,
       },
+      icon: iconImage,
     });
     // and load the index.html of the app.
     this.mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
@@ -71,7 +75,6 @@ class Main {
     this.mainWindow.webContents.openDevTools({ mode: 'detach' });
     this.ipcService = IpcService.getInstance();
     this.ipcService.registerCallback((channel, ...args) => {
-      console.log(args);
       this.mainWindow.webContents.send(channel, ...args);
     });
   }
