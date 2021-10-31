@@ -10,6 +10,8 @@ class TftpService {
 
   private server: dgram.Socket;
 
+  private isListening: boolean;
+
   readRequest: ReadRequest;
 
   constructor() {
@@ -20,6 +22,7 @@ class TftpService {
       })
       .on('listening', () => {
         console.log('listening...');
+        this.isListening = true;
       })
       .on('message', (msg, rInfo) => {
         this.message(msg, rInfo);
@@ -67,6 +70,10 @@ class TftpService {
     const ROOT = path.join(app.getPath('userData'), '/tftpboot/');
     console.log(`server start (port: ${this.PORT}, dir: ${ROOT})`);
     this.server.bind(this.PORT);
+  }
+
+  Stop(): void {
+    if (this.server != null && this.isListening) this.server.close();
   }
 }
 

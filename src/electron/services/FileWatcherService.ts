@@ -1,4 +1,4 @@
-import { app } from 'electron';
+import { app, nativeImage, Notification } from 'electron';
 import * as fs from 'fs';
 import * as fsPromise from 'fs/promises';
 import * as path from 'path';
@@ -9,6 +9,7 @@ export interface FileInfo {
   fileName: string;
   filePath: string;
   mDate: string;
+  fileIconUrl?: string;
 }
 
 export class FileWatcherService {
@@ -57,8 +58,11 @@ export class FileWatcherService {
         const result = JSON.parse(bufferJson);
         this.files = result;
         this.files.forEach(async (fi) => {
+          const fiTmp = fi;
           this.watchFile(fi.filePath);
           const dest = FileWatcherService.generateTftpFilePath(fi.filePath);
+          const fileIcon = await app.getFileIcon(fi.filePath);
+          fiTmp.fileIconUrl = fileIcon.toDataURL();
 
           fs.copyFile(fi.filePath, dest, (e) => {
             if (e) console.log(`copy file error = ${e}`);
@@ -150,7 +154,7 @@ export class FileWatcherService {
   private watchFile(file: string) {
     console.log(`watch ${file} file...`);
 
-    fs.watchFile(file, (curr, prev) => {
+    fs.watchFile(file, async (curr, prev) => {
       console.log(`file is changed. cp files.. (${curr.mtime}, ${prev.mtime})`);
       const stat = fs.statSync(file);
       const dest = FileWatcherService.generateTftpFilePath(file);
@@ -165,10 +169,20 @@ export class FileWatcherService {
       } catch (e) {
         console.log(e);
       }
+      const fileIcon = await app.getFileIcon(target.filePath);
+      const iconImage = nativeImage.createFromPath('./src/assets/icons/win/icon.ico');
+      const noti = new Notification({
+        title: `update file`,
+        body: `${target.fileName} is updated`,
+        icon: iconImage,
+      });
+      target.fileIconUrl = fileIcon.toDataURL();
+      noti.show();
 
       const ipcService = IpcService.getInstance();
       ipcService.sendToRender(GET_FILE_LISTS, {
         files: this.files,
+        updateFile: target.fileName,
       });
     });
   }

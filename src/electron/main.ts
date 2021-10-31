@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, nativeImage } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu, nativeImage, Tray } from 'electron';
 import { FileWatcherService } from './services/FileWatcherService';
 import TftpService from './services/tftp-service';
 import { IpcChannel } from './ipc/ipcChannel';
@@ -35,7 +35,32 @@ class Main {
 
     app.on('window-all-closed', this.onWindowClosed);
     app.on('activate', this.onActivate);
-
+    let tray;
+    app.whenReady().then(() => {
+      const iconImage = nativeImage.createFromPath('./src/assets/icons/win/icon.ico');
+      tray = new Tray(iconImage);
+      const contextMenu = Menu.buildFromTemplate([
+        {
+          label: 'program exit',
+          type: 'normal',
+          click: () => {
+            if (this.mainWindow.isEnabled()) this.mainWindow.destroy();
+            app.quit();
+          },
+        },
+      ]);
+      tray.setToolTip('This is my application');
+      tray.setTitle('This is my title');
+      tray.setContextMenu(contextMenu);
+      tray.on('click', () => {
+        if (this.mainWindow != null) {
+          if (!this.mainWindow.isVisible()) {
+            this.mainWindow.show();
+          }
+        }
+      });
+    });
+    app.setUserTasks([]);
     this.registerIpcChannels(ipcChannels);
 
     this.tftpService.Start();
@@ -43,7 +68,9 @@ class Main {
 
   private onWindowClosed = (): void => {
     if (process.platform !== 'darwin') {
-      app.quit();
+      // app.quit();
+      // app.hide();
+      // this.mainWindow.hide();
     }
   };
 
@@ -57,7 +84,6 @@ class Main {
 
   private createWindow() {
     const iconImage = nativeImage.createFromPath('./src/assets/icons/win/icon.ico');
-    console.log(iconImage);
 
     this.mainWindow = new BrowserWindow({
       height: 600,
@@ -71,11 +97,19 @@ class Main {
     });
     // and load the index.html of the app.
     this.mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
+    this.mainWindow.setMenuBarVisibility(false);
+
     // Open the DevTools.
-    this.mainWindow.webContents.openDevTools({ mode: 'detach' });
+    // this.mainWindow.webContents.openDevTools({ mode: 'detach' });
     this.ipcService = IpcService.getInstance();
     this.ipcService.registerCallback((channel, ...args) => {
       this.mainWindow.webContents.send(channel, ...args);
+    });
+
+    this.mainWindow.on('close', (e) => {
+      e.preventDefault();
+      // e.returnValue = false;
+      this.mainWindow.hide();
     });
   }
 

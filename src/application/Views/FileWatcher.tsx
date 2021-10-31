@@ -5,6 +5,7 @@ import  IpcService  from "../../electron/services/ipc-service";
 import { FileInfo } from "../../electron/services/FileWatcherService";
 import { GET_FILE_LISTS } from "../ipc-channel.app";
 import  usePolling  from "../hooks/usePolling";
+import { nativeImage } from "electron";
 
 
 const Container = styled.div`
@@ -152,8 +153,16 @@ const FileWatcher: FunctionComponent = () => {
   }, []);
 
   usePolling(GET_FILE_LISTS, (event, rest) => {
-    console.log(`result files ${files}`);
-    setfiles(rest.files);
+    
+    const {updateFile, files: fileLists} = rest;
+    // new Notification("file is updated", {
+    //    title : 'File Updated',
+    //    body: `${updateFile} is updated`,
+    //    icon: './src/assets/icons/win/icon.ico'
+    // }).onclick = () => {
+    //   document.getElementById("output").innerText = "CLICK_MESSAGE";
+    // }
+    setfiles(fileLists);
   });
 
   const openDialog = async () => {
@@ -182,6 +191,10 @@ const FileWatcher: FunctionComponent = () => {
       <ItemList>
         {files.map((f: FileInfo) => (
           <FileItemContainer>
+            {
+              !f.fileIconUrl? "" : (<img alt="test" src={f.fileIconUrl} width={32} height={32}/>)
+            }
+            
             <FileText>{f.fileName}</FileText>
             <FileDate>{f.mDate}</FileDate>
           </FileItemContainer>
