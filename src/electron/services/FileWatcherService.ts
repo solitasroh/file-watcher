@@ -6,6 +6,7 @@ import { GET_FILE_LISTS } from '../ipc-channel.elec';
 import IpcService from './ipc-service';
 
 export interface FileInfo {
+  key: number;
   fileName: string;
   filePath: string;
   mDate: string;
@@ -20,6 +21,7 @@ export class FileWatcherService {
   static instance: FileWatcherService;
 
   private files: FileInfo[] = [];
+  private itemCount: number;
 
   constructor() {
     FileWatcherService.InitTFTPDir();
@@ -57,12 +59,19 @@ export class FileWatcherService {
         const bufferJson = buffer.toString();
         const result = JSON.parse(bufferJson);
         this.files = result;
+        this.itemCount = this.files.length;
+        let key = 1;
         this.files.forEach(async (fi) => {
           const fiTmp = fi;
           this.watchFile(fi.filePath);
           const dest = FileWatcherService.generateTftpFilePath(fi.filePath);
           const fileIcon = await app.getFileIcon(fi.filePath);
           fiTmp.fileIconUrl = fileIcon.toDataURL();
+
+          if (fiTmp.key === 0 || fiTmp.key === undefined) {
+            fiTmp.key = key;
+            key += 1;
+          }
 
           fs.copyFile(fi.filePath, dest, (e) => {
             if (e) console.log(`copy file error = ${e}`);
@@ -75,6 +84,7 @@ export class FileWatcherService {
 
           // eslint-disable-next-line no-param-reassign
           fi.mDate = fileStats.mtime.toLocaleString();
+          console.log(fi.key);
         });
       }
     } catch (err) {
@@ -113,7 +123,9 @@ export class FileWatcherService {
       fileName: path.basename(file),
       mDate: stat.mtime.toLocaleString(),
       filePath: file,
+      key: this.itemCount + 1,
     };
+    this.itemCount += 1;
 
     if (isExists) {
       return;

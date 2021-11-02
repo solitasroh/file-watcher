@@ -1,33 +1,20 @@
-import React, { useState, useEffect, FunctionComponent } from 'react';
-
+import React, { FunctionComponent, Key, useState } from 'react';
 import styled from 'styled-components';
+import { FileInfo } from '../../electron/services/FileWatcherService';
 
-
-const ItemList = styled.div`
+const FileItemContainer = styled.div<{ selected: boolean }>`
   display: flex;
-  flex-direction: column;
-  margin-bottom: 20px;
-  height: 500px;
-  overflow: auto;
-  padding-right: 5px;
-  flex: 1;
-  scrollbar-width: thin;
-  ::-webkit-scrollbar{
-    width: 15px;
-    height: 20px;
-    scrollbar-color: #d4aa70 #e4e4e4;
-    background-color: transparent;
-    
+  background-color: ${(props) => (props.selected ? '#f4f4f4' : '#77a0c2c0')};
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  min-width: 350px;
+  height: 55px;
+  :hover {
+    background-color: #77a0c2c0;
   }
-  ::-webkit-scrollbar-thumb {
-    background-color: #c2bdbd;
-    border-radius: 10px;
-    background-clip: padding-box;
-    border: 3px solid transparent;
-  }
-  ::-webkit-scrollbar-track{
-    background-color: #e4e4e4;
-    border-radius: 3px;
+  :active {
+    background-color: #f1f1f1;
   }
 `;
 
@@ -49,5 +36,32 @@ const FileDate = styled.label`
   color: #0bb007;
   align-self: flex-end;
 `;
+
+const FileIcon = styled.img`
+  width: 15px;
+  height: 15px;
+  align-self: center;
+  margin-right: 5px;
+`;
+
+type FileItemProps = {
+  fi: FileInfo;
+};
+
+const FileItem: FunctionComponent<FileItemProps> = ({ fi }) => {
+  const [selected, setSelected] = useState(false);
+
+  const itemClicked = () => {
+    setSelected(!selected);
+  };
+
+  return (
+    <FileItemContainer onClick={itemClicked} selected={selected}>
+      {!fi.fileIconUrl ? '' : <FileIcon src={fi.fileIconUrl} />}
+      <FileText>{fi.fileName}</FileText>
+      <FileDate>{fi.mDate}</FileDate>
+    </FileItemContainer>
+  );
+};
 
 export default FileItem;

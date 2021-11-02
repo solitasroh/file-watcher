@@ -37,7 +37,7 @@ class Main {
     app.on('activate', this.onActivate);
     let tray;
     app.whenReady().then(() => {
-      const iconImage = nativeImage.createFromPath('../assets/icons/win/icon.ico');
+      const iconImage = nativeImage.createFromPath('./src/assets/icons/win/icon.ico');
       tray = new Tray(iconImage);
       const contextMenu = Menu.buildFromTemplate([
         {
@@ -49,8 +49,8 @@ class Main {
           },
         },
       ]);
-      tray.setToolTip('This is my application');
-      tray.setTitle('This is my title');
+      tray.setToolTip('File-Watcher');
+      tray.setTitle('File-Watcher');
       tray.setContextMenu(contextMenu);
       tray.on('click', () => {
         if (this.mainWindow != null) {
@@ -60,7 +60,7 @@ class Main {
         }
       });
     });
-    app.setUserTasks([]);
+    // app.setUserTasks([]);
     this.registerIpcChannels(ipcChannels);
 
     this.tftpService.Start();
@@ -83,7 +83,7 @@ class Main {
   }
 
   private createWindow() {
-    const iconImage = nativeImage.createFromPath('./src/assets/icons/win/icon.ico');
+    const iconImage = nativeImage.createFromPath('../src/assets/icons/win/icon.ico');
 
     this.mainWindow = new BrowserWindow({
       height: 600,
@@ -100,7 +100,7 @@ class Main {
     this.mainWindow.setMenuBarVisibility(false);
 
     // Open the DevTools.
-    // this.mainWindow.webContents.openDevTools({ mode: 'detach' });
+    this.mainWindow.webContents.openDevTools({ mode: 'detach' });
     this.ipcService = IpcService.getInstance();
     this.ipcService.registerCallback((channel, ...args) => {
       this.mainWindow.webContents.send(channel, ...args);

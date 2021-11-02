@@ -5,6 +5,7 @@ import IpcService from '../../electron/services/ipc-service';
 import { FileInfo } from '../../electron/services/FileWatcherService';
 import { GET_FILE_LISTS } from '../ipc-channel.app';
 import usePolling from '../hooks/usePolling';
+import FileItem from './FileItem';
 
 const Container = styled.div`
   position: absolute;
@@ -32,12 +33,11 @@ const ItemList = styled.div`
   padding-right: 5px;
   flex: 1;
   scrollbar-width: thin;
-  ::-webkit-scrollbar{
+  ::-webkit-scrollbar {
     width: 15px;
     height: 20px;
     scrollbar-color: #d4aa70 #e4e4e4;
     background-color: transparent;
-    
   }
   ::-webkit-scrollbar-thumb {
     background-color: #c2bdbd;
@@ -45,7 +45,7 @@ const ItemList = styled.div`
     background-clip: padding-box;
     border: 3px solid transparent;
   }
-  ::-webkit-scrollbar-track{
+  ::-webkit-scrollbar-track {
     background-color: #e4e4e4;
     border-radius: 3px;
   }
@@ -87,23 +87,6 @@ const AddFileButton = styled.button`
     background-color: #373737;
   }
 `;
-
-const FileItemContainer = styled.div`
-  display: flex;
-  background-color: #f4f4f4;
-  padding: 10px;
-  border-radius: 4px;
-  margin-bottom: 10px;
-  min-width: 350px;
-  height: 55px;
-  :hover {
-    background-color: #77a0c2c0;
-  }
-  :active {
-    background-color: #f1f1f1;
-  }
-`;
-
 
 // const StartButton = styled.button`
 //   background: #06e05d;
@@ -171,9 +154,7 @@ const FileWatcher: FunctionComponent = () => {
     const result = await ipc.send<{ filePaths: [] }>('file-open');
     setfiles(result.filePaths);
   };
-  const fileSelect = () => {
-    console.log('item clicked');
-  }
+
   return (
     <Container>
       <Header>
@@ -185,13 +166,8 @@ const FileWatcher: FunctionComponent = () => {
       </Header>
 
       <ItemList>
-        {files.map((f: FileInfo) => (
-          <FileItemContainer>
-            {!f.fileIconUrl ? '' : <img alt="test" src={f.fileIconUrl} width={32} height={32} />}
-
-            <FileText>{f.fileName}</FileText>
-            <FileDate>{f.mDate}</FileDate>
-          </FileItemContainer>
+        {files.map((fi: FileInfo) => (
+          <FileItem fi={fi} key={fi.key} />
         ))}
       </ItemList>
     </Container>
