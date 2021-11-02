@@ -1,12 +1,10 @@
-import React, { useState, useEffect, FunctionComponent } from "react";
+import React, { useState, useEffect, FunctionComponent } from 'react';
 
-import styled from "styled-components";
-import  IpcService  from "../../electron/services/ipc-service";
-import { FileInfo } from "../../electron/services/FileWatcherService";
-import { GET_FILE_LISTS } from "../ipc-channel.app";
-import  usePolling  from "../hooks/usePolling";
-import { nativeImage } from "electron";
-
+import styled from 'styled-components';
+import IpcService from '../../electron/services/ipc-service';
+import { FileInfo } from '../../electron/services/FileWatcherService';
+import { GET_FILE_LISTS } from '../ipc-channel.app';
+import usePolling from '../hooks/usePolling';
 
 const Container = styled.div`
   position: absolute;
@@ -29,7 +27,28 @@ const ItemList = styled.div`
   display: flex;
   flex-direction: column;
   margin-bottom: 20px;
+  height: 500px;
+  overflow: auto;
+  padding-right: 5px;
   flex: 1;
+  scrollbar-width: thin;
+  ::-webkit-scrollbar{
+    width: 15px;
+    height: 20px;
+    scrollbar-color: #d4aa70 #e4e4e4;
+    background-color: transparent;
+    
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: #c2bdbd;
+    border-radius: 10px;
+    background-clip: padding-box;
+    border: 3px solid transparent;
+  }
+  ::-webkit-scrollbar-track{
+    background-color: #e4e4e4;
+    border-radius: 3px;
+  }
 `;
 
 // const ButtonConatiner = styled.div`
@@ -75,6 +94,7 @@ const FileItemContainer = styled.div`
   padding: 10px;
   border-radius: 4px;
   margin-bottom: 10px;
+  min-width: 350px;
   height: 55px;
   :hover {
     background-color: #77a0c2c0;
@@ -83,24 +103,7 @@ const FileItemContainer = styled.div`
     background-color: #f1f1f1;
   }
 `;
-const FileText = styled.label`
-  flex: 1;
-  font-family: Roboto;
-  font-style: normal;
-  font-weight: normal;
-  font-size: 12px;
-  line-height: 14px;
-  align-self: center;
-`;
 
-const FileDate = styled.label`
-  font-family: Roboto;
-  font-style: normal;
-  font-weight: normal;
-  font-size: 11px;
-  color: #0bb007;
-  align-self: flex-end;
-`;
 
 // const StartButton = styled.button`
 //   background: #06e05d;
@@ -153,8 +156,7 @@ const FileWatcher: FunctionComponent = () => {
   }, []);
 
   usePolling(GET_FILE_LISTS, (event, rest) => {
-    
-    const {updateFile, files: fileLists} = rest;
+    const { files: fileLists } = rest;
     // new Notification("file is updated", {
     //    title : 'File Updated',
     //    body: `${updateFile} is updated`,
@@ -166,18 +168,12 @@ const FileWatcher: FunctionComponent = () => {
   });
 
   const openDialog = async () => {
-    const result = await ipc.send<{ filePaths: [] }>("file-open");
-    console.log(result.filePaths);
+    const result = await ipc.send<{ filePaths: [] }>('file-open');
     setfiles(result.filePaths);
   };
-  // const removeclick = async (fileInfo: FileInfo) => {
-  //   if (selectFile == null) return;
-  //   const ipc = IpcService.getInstance();
-
-  //   const result = await ipc.send<{ fileInfos: [] }>("file-remove");
-  //   setfiles(result.fileInfos);
-  // };
-
+  const fileSelect = () => {
+    console.log('item clicked');
+  }
   return (
     <Container>
       <Header>
@@ -191,20 +187,13 @@ const FileWatcher: FunctionComponent = () => {
       <ItemList>
         {files.map((f: FileInfo) => (
           <FileItemContainer>
-            {
-              !f.fileIconUrl? "" : (<img alt="test" src={f.fileIconUrl} width={32} height={32}/>)
-            }
-            
+            {!f.fileIconUrl ? '' : <img alt="test" src={f.fileIconUrl} width={32} height={32} />}
+
             <FileText>{f.fileName}</FileText>
             <FileDate>{f.mDate}</FileDate>
           </FileItemContainer>
         ))}
       </ItemList>
-
-      {/* <ButtonConatiner>
-        <StartButton>START SERVER</StartButton>
-        <StopButton>STOP SERVER</StopButton>
-      </ButtonConatiner> */}
     </Container>
   );
 };

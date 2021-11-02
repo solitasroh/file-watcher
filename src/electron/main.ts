@@ -37,7 +37,7 @@ class Main {
     app.on('activate', this.onActivate);
     let tray;
     app.whenReady().then(() => {
-      const iconImage = nativeImage.createFromPath('./src/assets/icons/win/icon.ico');
+      const iconImage = nativeImage.createFromPath('../assets/icons/win/icon.ico');
       tray = new Tray(iconImage);
       const contextMenu = Menu.buildFromTemplate([
         {

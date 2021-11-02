@@ -94,8 +94,6 @@ export class FileWatcherService {
       console.log(error);
       return false;
     }
-
-    console.log('save files successfully');
     return true;
   }
 
@@ -117,16 +115,12 @@ export class FileWatcherService {
       filePath: file,
     };
 
-    console.log(`is exists = ${file} ${isExists}`);
-
     if (isExists) {
       return;
     }
-    console.log('file is inserted successfully');
 
     const dest = FileWatcherService.generateTftpFilePath(file);
 
-    console.log(`copy a file successfully. (${dest})`);
     this.files.push(fileInfo);
 
     fs.copyFile(file, dest, (e) => {
