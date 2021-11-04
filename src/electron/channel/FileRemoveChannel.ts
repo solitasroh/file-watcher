@@ -1,4 +1,5 @@
 import { IpcMainEvent } from 'electron';
+import { REMOVE_FILE } from '../ipc-channel.elec';
 import { IpcChannel } from '../ipc/ipcChannel';
 import { FileWatcherService } from '../services/FileWatcherService';
 import { FileRemoveRequest } from './FileRemoveRequest';
@@ -9,7 +10,7 @@ class FileRemoveChannel implements IpcChannel<FileRemoveRequest> {
   private fileService?: FileWatcherService;
 
   constructor() {
-    this.name = 'file-remove';
+    this.name = REMOVE_FILE;
     this.fileService = FileWatcherService.getInstance();
   }
 

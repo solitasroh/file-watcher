@@ -31,12 +31,14 @@ const ItemList = styled.div`
 `;
 interface FileListProps {
   files: Array<FileInfo>;
+  selectedKeyChanged: (key: number) => void;
 }
 
-const FileList: FunctionComponent<FileListProps> = ({ files }) => {
+const FileList: FunctionComponent<FileListProps> = ({ files, selectedKeyChanged }) => {
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const selectionChange = (index: number) => {
     setSelectedIndex(index);
+    selectedKeyChanged(index);
   };
 
   const item = files.map((fi: FileInfo) => {

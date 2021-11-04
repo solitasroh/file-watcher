@@ -82,28 +82,29 @@ const AddFileButton = styled.button`
 //   }
 // `;
 
-// const StopButton = styled.button`
-//   background: #f93434;
-//   border-radius: 4px;
-//   border: 0px;
-//   width: 173px;
-//   height: 36px;
-//   font-family: Roboto;
-//   font-style: normal;
-//   font-weight: bold;
-//   font-size: 16px;
-//   text-align: center;
-//   color: white;
-//   :hover {
-//     background-color: #f93434cb;
-//   }
-//   :active {
-//     background-color: #f9343462;
-//   }
-// `;
+const StopButton = styled.button`
+  background: #f93434;
+  border-radius: 4px;
+  border: 0px;
+  width: 173px;
+  height: 36px;
+  font-family: Roboto;
+  font-style: normal;
+  font-weight: bold;
+  font-size: 16px;
+  text-align: center;
+  color: white;
+  :hover {
+    background-color: #f93434cb;
+  }
+  :active {
+    background-color: #f9343462;
+  }
+`;
 
 const FileWatcher: FunctionComponent = () => {
   const [files, setfiles] = useState<Array<FileInfo>>([]);
+  const [selectedKey, setSelectedKey] = useState(0);
   const ipc = IpcService.getInstance();
 
   useEffect(() => {
@@ -132,6 +133,14 @@ const FileWatcher: FunctionComponent = () => {
     }
   };
 
+  const selectedItemChanged = (key: number) => {
+    setSelectedKey(key);
+  };
+  const removeClick = () => {
+    console.log(`remove ${selectedKey}`);
+    if (selectedKey > 0) removeItem(selectedKey);
+  };
+
   return (
     <Container>
       <Header>
@@ -141,7 +150,8 @@ const FileWatcher: FunctionComponent = () => {
         </HeaderTextArea>
         <AddFileButton onClick={openDialog}>+</AddFileButton>
       </Header>
-      <FileList files={files} />
+      <FileList files={files} selectedKeyChanged={selectedItemChanged} />
+      <StopButton onClick={removeClick}> remove </StopButton>
     </Container>
   );
 };

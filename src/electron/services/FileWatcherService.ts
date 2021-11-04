@@ -21,6 +21,7 @@ export class FileWatcherService {
   static instance: FileWatcherService;
 
   private files: FileInfo[] = [];
+
   private itemCount: number;
 
   constructor() {
@@ -68,11 +69,12 @@ export class FileWatcherService {
           const fileIcon = await app.getFileIcon(fi.filePath);
           fiTmp.fileIconUrl = fileIcon.toDataURL();
 
-          if (fiTmp.key === 0 || fiTmp.key === undefined) {
-            fiTmp.key = key;
-            key += 1;
-          }
-
+          // if (fiTmp.key === 0 || fiTmp.key === undefined) {
+          //   fiTmp.key = key;
+          //   key += 1;
+          // }
+          fiTmp.key = key;
+          key += 1;
           fs.copyFile(fi.filePath, dest, (e) => {
             if (e) console.log(`copy file error = ${e}`);
           });
@@ -145,15 +147,23 @@ export class FileWatcherService {
 
   RemoveWatchFile(key: number): void {
     try {
+      console.log(`remove watch file : ${key}`);
       const fileInfo = this.files.find((f) => f.key === key);
       if (fileInfo == null || fileInfo === undefined) return;
       fs.unwatchFile(fileInfo.filePath);
       const index = this.files.findIndex((f) => f.filePath === fileInfo.filePath);
+
       if (index > -1) {
-        this.files.slice(index);
+        this.files.splice(index, 1);
       }
+
       fs.rmSync(FileWatcherService.generateTftpFilePath(fileInfo.filePath));
       this.saveFileList();
+      const ipcService = IpcService.getInstance();
+      ipcService.sendToRender(GET_FILE_LISTS, {
+        files: this.files,
+        updateFile: fileInfo.fileName,
+      });
     } catch (error) {
       console.log(error);
     }
