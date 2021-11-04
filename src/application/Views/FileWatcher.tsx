@@ -3,9 +3,10 @@ import React, { useState, useEffect, FunctionComponent } from 'react';
 import styled from 'styled-components';
 import IpcService from '../../electron/services/ipc-service';
 import { FileInfo } from '../../electron/services/FileWatcherService';
-import { GET_FILE_LISTS } from '../ipc-channel.app';
+import { GET_FILE_LISTS, REMOVE_FILE } from '../ipc-channel.app';
 import usePolling from '../hooks/usePolling';
-import FileItem from './FileItem';
+import FileList from './FileList';
+import { FileRemoveRequest } from '../../electron/channel/FileRemoveRequest';
 
 const Container = styled.div`
   position: absolute;
@@ -22,33 +23,6 @@ const Header = styled.div`
   display: flex;
   flex-direction: row;
   margin-bottom: 20px;
-`;
-
-const ItemList = styled.div`
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 20px;
-  height: 500px;
-  overflow: auto;
-  padding-right: 5px;
-  flex: 1;
-  scrollbar-width: thin;
-  ::-webkit-scrollbar {
-    width: 15px;
-    height: 20px;
-    scrollbar-color: #d4aa70 #e4e4e4;
-    background-color: transparent;
-  }
-  ::-webkit-scrollbar-thumb {
-    background-color: #c2bdbd;
-    border-radius: 10px;
-    background-clip: padding-box;
-    border: 3px solid transparent;
-  }
-  ::-webkit-scrollbar-track {
-    background-color: #e4e4e4;
-    border-radius: 3px;
-  }
 `;
 
 // const ButtonConatiner = styled.div`
@@ -140,19 +114,22 @@ const FileWatcher: FunctionComponent = () => {
 
   usePolling(GET_FILE_LISTS, (event, rest) => {
     const { files: fileLists } = rest;
-    // new Notification("file is updated", {
-    //    title : 'File Updated',
-    //    body: `${updateFile} is updated`,
-    //    icon: './src/assets/icons/win/icon.ico'
-    // }).onclick = () => {
-    //   document.getElementById("output").innerText = "CLICK_MESSAGE";
-    // }
     setfiles(fileLists);
   });
 
   const openDialog = async () => {
     const result = await ipc.send<{ filePaths: [] }>('file-open');
     setfiles(result.filePaths);
+  };
+
+  const removeItem = (key: number) => {
+    const request: FileRemoveRequest = {
+      key,
+    };
+    const fs = files.find((f) => f.key === key);
+    if (fs != null && fs !== undefined) {
+      ipc.send<{ key: number }>(REMOVE_FILE, request);
+    }
   };
 
   return (
@@ -164,12 +141,7 @@ const FileWatcher: FunctionComponent = () => {
         </HeaderTextArea>
         <AddFileButton onClick={openDialog}>+</AddFileButton>
       </Header>
-
-      <ItemList>
-        {files.map((fi: FileInfo) => (
-          <FileItem fi={fi} key={fi.key} />
-        ))}
-      </ItemList>
+      <FileList files={files} />
     </Container>
   );
 };

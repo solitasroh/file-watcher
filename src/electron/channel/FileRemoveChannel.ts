@@ -19,7 +19,7 @@ class FileRemoveChannel implements IpcChannel<FileRemoveRequest> {
 
   handle(event: IpcMainEvent, request: FileRemoveRequest): void {
     try {
-      this.fileService.RemoveWatchFile(request.fileInfo);
+      this.fileService.RemoveWatchFile(request.key);
 
       event.sender.send(request.responseChannel, {
         fileInfos: this.fileService.getFileInfos(),

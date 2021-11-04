@@ -4,17 +4,17 @@ import { FileInfo } from '../../electron/services/FileWatcherService';
 
 const FileItemContainer = styled.div<{ selected: boolean }>`
   display: flex;
-  background-color: ${(props) => (props.selected ? '#f4f4f4' : '#77a0c2c0')};
+  background-color: ${(props) => (props.selected ? '#b8d4ebc0' : '#f4f4f4')};
   padding: 10px;
   border-radius: 4px;
   margin-bottom: 10px;
   min-width: 350px;
   height: 55px;
   :hover {
-    background-color: #77a0c2c0;
+    background-color: #bababac0;
   }
   :active {
-    background-color: #f1f1f1;
+    background-color: #686868;
   }
 `;
 
@@ -45,21 +45,21 @@ const FileIcon = styled.img`
 `;
 
 type FileItemProps = {
-  fi: FileInfo;
+  file: FileInfo;
+  selectionChange: (index: number) => void;
+  isSelected: boolean;
 };
 
-const FileItem: FunctionComponent<FileItemProps> = ({ fi }) => {
-  const [selected, setSelected] = useState(false);
-
+const FileItem: FunctionComponent<FileItemProps> = ({ file, selectionChange, isSelected }) => {
   const itemClicked = () => {
-    setSelected(!selected);
+    selectionChange(file.key);
   };
 
   return (
-    <FileItemContainer onClick={itemClicked} selected={selected}>
-      {!fi.fileIconUrl ? '' : <FileIcon src={fi.fileIconUrl} />}
-      <FileText>{fi.fileName}</FileText>
-      <FileDate>{fi.mDate}</FileDate>
+    <FileItemContainer onClick={itemClicked} selected={isSelected}>
+      {!file.fileIconUrl ? '' : <FileIcon src={file.fileIconUrl} />}
+      <FileText>{file.fileName}</FileText>
+      <FileDate>{file.mDate}</FileDate>
     </FileItemContainer>
   );
 };

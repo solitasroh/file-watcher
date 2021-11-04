@@ -143,8 +143,10 @@ export class FileWatcherService {
     this.saveFileList();
   }
 
-  RemoveWatchFile(fileInfo: FileInfo): void {
+  RemoveWatchFile(key: number): void {
     try {
+      const fileInfo = this.files.find((f) => f.key === key);
+      if (fileInfo == null || fileInfo === undefined) return;
       fs.unwatchFile(fileInfo.filePath);
       const index = this.files.findIndex((f) => f.filePath === fileInfo.filePath);
       if (index > -1) {

@@ -1,12 +1,11 @@
-import { FileInfo } from '../services/FileWatcherService';
 import { FileRemoveRequest } from './FileRemoveRequest';
 
 class FileRemoveArgs implements FileRemoveRequest {
-  constructor(fileInfo: FileInfo) {
-    this.fileInfo = fileInfo;
+  constructor(key: number) {
+    this.key = key;
   }
 
-  fileInfo: FileInfo;
+  key: number;
 
   responseChannel?: string;
 }
