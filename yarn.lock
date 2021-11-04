@@ -1780,6 +1780,11 @@
     "@types/react" "*"
     "csstype" "^3.0.2"
 
+"@types/uuid@8.3.1":
+  "integrity" "sha512-Y2mHTRAbqfFkpjldbkHGY8JIzRN6XqYRliG8/24FcHm2D2PwW24fl5xMRTVGdrb7iMrwCaIEbLWerGIkXuFWVg=="
+  "resolved" "https://registry.npmjs.org/@types/uuid/-/uuid-8.3.1.tgz"
+  "version" "8.3.1"
+
 "@types/yargs-parser@*":
   "integrity" "sha512-7tFImggNeNBVMsn0vLrpn1H1uPrUBdnARPTpZoitY37ZrdJREzf7I16tMrlK3hen349gr1NYh8CmZQa7CTG6Aw=="
   "resolved" "https://registry.npmjs.org/@types/yargs-parser/-/yargs-parser-20.2.1.tgz"
@@ -12020,7 +12025,7 @@
   "resolved" "https://registry.npmjs.org/utils-merge/-/utils-merge-1.0.1.tgz"
   "version" "1.0.1"
 
-"uuid@^3.3.2", "uuid@^3.4.0":
+"uuid@^3.3.2", "uuid@^3.4.0", "uuid@3.4.0":
   "integrity" "sha512-HjSDRw6gZE5JMggctHBcjVak08+KEVhSIiDzFnT9S9aegmp85S/bReBVTb4QTFaRNptJ9kuYaNhnbNEOkbKb/A=="
   "resolved" "https://registry.npmjs.org/uuid/-/uuid-3.4.0.tgz"
   "version" "3.4.0"

@@ -1,4 +1,4 @@
-import React, { FunctionComponent, Key, useState } from 'react';
+import React, { FunctionComponent } from 'react';
 import styled from 'styled-components';
 import { FileInfo } from '../../electron/services/FileWatcherService';
 
@@ -46,13 +46,13 @@ const FileIcon = styled.img`
 
 type FileItemProps = {
   file: FileInfo;
-  selectionChange: (index: number) => void;
+  selectionChange: (uuid: string) => void;
   isSelected: boolean;
 };
 
 const FileItem: FunctionComponent<FileItemProps> = ({ file, selectionChange, isSelected }) => {
   const itemClicked = () => {
-    selectionChange(file.key);
+    selectionChange(file.uuid);
   };
 
   return (

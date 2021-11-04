@@ -1,11 +1,11 @@
 import { FileRemoveRequest } from './FileRemoveRequest';
 
 class FileRemoveArgs implements FileRemoveRequest {
-  constructor(key: number) {
-    this.key = key;
+  constructor(uuid: string) {
+    this.uuid = uuid;
   }
 
-  key: number;
+  uuid: string;
 
   responseChannel?: string;
 }

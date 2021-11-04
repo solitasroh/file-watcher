@@ -31,22 +31,22 @@ const ItemList = styled.div`
 `;
 interface FileListProps {
   files: Array<FileInfo>;
-  selectedKeyChanged: (key: number) => void;
+  selectedItemChanged: (uuid: string) => void;
 }
 
-const FileList: FunctionComponent<FileListProps> = ({ files, selectedKeyChanged }) => {
-  const [selectedIndex, setSelectedIndex] = useState(-1);
-  const selectionChange = (index: number) => {
-    setSelectedIndex(index);
-    selectedKeyChanged(index);
+const FileList: FunctionComponent<FileListProps> = ({ files, selectedItemChanged: selectedKeyChanged }) => {
+  const [selectedId, setSelectedId] = useState('');
+  const selectionChange = (uuid: string) => {
+    setSelectedId(uuid);
+    selectedKeyChanged(uuid);
   };
 
   const item = files.map((fi: FileInfo) => {
     let isSelected = false;
-    if (fi.key === selectedIndex) {
+    if (fi.uuid === selectedId) {
       isSelected = true;
     }
-    return <FileItem file={fi} key={fi.key} selectionChange={selectionChange} isSelected={isSelected} />;
+    return <FileItem file={fi} key={fi.uuid} selectionChange={selectionChange} isSelected={isSelected} />;
   });
   return <ItemList>{item}</ItemList>;
 };

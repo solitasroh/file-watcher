@@ -2,17 +2,20 @@ import { app, nativeImage, Notification } from 'electron';
 import * as fs from 'fs';
 import * as fsPromise from 'fs/promises';
 import * as path from 'path';
+import { v1 } from 'uuid';
 import { GET_FILE_LISTS } from '../ipc-channel.elec';
 import IpcService from './ipc-service';
 
 export interface FileInfo {
-  key: number;
+  uuid: string;
   fileName: string;
   filePath: string;
   mDate: string;
   fileIconUrl?: string;
 }
 
+// https://www.uuidgenerator.net/
+const MY_NAMESPACE = 'a10a9920-772b-42fa-b310-87aa154b87df';
 export class FileWatcherService {
   static TFTP_ROOT = path.join(app.getPath('userData'), '/tftpboot/');
 
@@ -61,7 +64,7 @@ export class FileWatcherService {
         const result = JSON.parse(bufferJson);
         this.files = result;
         this.itemCount = this.files.length;
-        let key = 1;
+
         this.files.forEach(async (fi) => {
           const fiTmp = fi;
           this.watchFile(fi.filePath);
@@ -69,12 +72,10 @@ export class FileWatcherService {
           const fileIcon = await app.getFileIcon(fi.filePath);
           fiTmp.fileIconUrl = fileIcon.toDataURL();
 
-          // if (fiTmp.key === 0 || fiTmp.key === undefined) {
-          //   fiTmp.key = key;
-          //   key += 1;
-          // }
-          fiTmp.key = key;
-          key += 1;
+          if (fiTmp.uuid == null || fiTmp === undefined) {
+            fiTmp.uuid = v1();
+          }
+
           fs.copyFile(fi.filePath, dest, (e) => {
             if (e) console.log(`copy file error = ${e}`);
           });
@@ -86,7 +87,7 @@ export class FileWatcherService {
 
           // eslint-disable-next-line no-param-reassign
           fi.mDate = fileStats.mtime.toLocaleString();
-          console.log(fi.key);
+          console.log(fi.uuid);
         });
       }
     } catch (err) {
@@ -121,12 +122,17 @@ export class FileWatcherService {
     const isExists = this.files.find((f) => f.filePath === file);
 
     const stat = fs.statSync(file);
+    const uid = v1();
+
+    console.log(`insert file : ${file}:${uid}`);
+
     const fileInfo: FileInfo = {
       fileName: path.basename(file),
       mDate: stat.mtime.toLocaleString(),
       filePath: file,
-      key: this.itemCount + 1,
+      uuid: uid,
     };
+
     this.itemCount += 1;
 
     if (isExists) {
@@ -145,10 +151,10 @@ export class FileWatcherService {
     this.saveFileList();
   }
 
-  RemoveWatchFile(key: number): void {
+  RemoveWatchFile(uuid: string): void {
     try {
-      console.log(`remove watch file : ${key}`);
-      const fileInfo = this.files.find((f) => f.key === key);
+      console.log(`remove watch file : ${uuid}`);
+      const fileInfo = this.files.find((f) => f.uuid === uuid);
       if (fileInfo == null || fileInfo === undefined) return;
       fs.unwatchFile(fileInfo.filePath);
       const index = this.files.findIndex((f) => f.filePath === fileInfo.filePath);
@@ -156,6 +162,8 @@ export class FileWatcherService {
       if (index > -1) {
         this.files.splice(index, 1);
       }
+
+      this.itemCount -= 1;
 
       fs.rmSync(FileWatcherService.generateTftpFilePath(fileInfo.filePath));
       this.saveFileList();

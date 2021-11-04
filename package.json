@@ -95,12 +95,14 @@
   },
   "dependencies": {
     "@fontsource/roboto": "4.5.0",
+    "@types/uuid": "8.3.1",
     "electron-squirrel-startup": "^1.0.0",
     "react": "17.0.2",
     "react-dom": "17.0.2",
     "styled-component": "^2.8.0",
     "styled-components": "^5.3.3",
     "styled-reset": "^4.3.4",
-    "tftp": "0.1.2"
+    "tftp": "0.1.2",
+    "uuid": "3.4.0"
   }
 }

@@ -104,7 +104,7 @@ const StopButton = styled.button`
 
 const FileWatcher: FunctionComponent = () => {
   const [files, setfiles] = useState<Array<FileInfo>>([]);
-  const [selectedKey, setSelectedKey] = useState(0);
+  const [selectedId, setSelectedId] = useState<string>();
   const ipc = IpcService.getInstance();
 
   useEffect(() => {
@@ -123,22 +123,22 @@ const FileWatcher: FunctionComponent = () => {
     setfiles(result.filePaths);
   };
 
-  const removeItem = (key: number) => {
+  const removeItem = (uuid: string) => {
     const request: FileRemoveRequest = {
-      key,
+      uuid,
     };
-    const fs = files.find((f) => f.key === key);
+    const fs = files.find((f) => f.uuid === uuid);
     if (fs != null && fs !== undefined) {
-      ipc.send<{ key: number }>(REMOVE_FILE, request);
+      ipc.send<{ uuid: string }>(REMOVE_FILE, request);
     }
   };
 
-  const selectedItemChanged = (key: number) => {
-    setSelectedKey(key);
+  const selectedItemChanged = (uuid: string) => {
+    setSelectedId(uuid);
   };
   const removeClick = () => {
-    console.log(`remove ${selectedKey}`);
-    if (selectedKey > 0) removeItem(selectedKey);
+    console.log(`remove ${selectedId}`);
+    if (selectedId != null) removeItem(selectedId);
   };
 
   return (
@@ -150,7 +150,7 @@ const FileWatcher: FunctionComponent = () => {
         </HeaderTextArea>
         <AddFileButton onClick={openDialog}>+</AddFileButton>
       </Header>
-      <FileList files={files} selectedKeyChanged={selectedItemChanged} />
+      <FileList files={files} selectedItemChanged={selectedItemChanged} />
       <StopButton onClick={removeClick}> remove </StopButton>
     </Container>
   );
