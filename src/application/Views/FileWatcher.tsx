@@ -122,23 +122,21 @@ const FileWatcher: FunctionComponent = () => {
     const result = await ipc.send<{ filePaths: [] }>('file-open');
     setfiles(result.filePaths);
   };
-
-  const removeItem = (uuid: string) => {
-    const request: FileRemoveRequest = {
-      uuid,
-    };
-    const fs = files.find((f) => f.uuid === uuid);
-    if (fs != null && fs !== undefined) {
-      ipc.send<{ uuid: string }>(REMOVE_FILE, request);
-    }
-  };
-
+  
   const selectedItemChanged = (uuid: string) => {
     setSelectedId(uuid);
   };
-  const removeClick = () => {
-    console.log(`remove ${selectedId}`);
-    if (selectedId != null) removeItem(selectedId);
+
+  const removeFileItem = () => {
+    if (selectedId != null) {
+      const request: FileRemoveRequest = {
+        uuid: selectedId,
+      };
+      const fs = files.find((f) => f.uuid === selectedId);
+      if (fs != null && fs !== undefined) {
+        ipc.send<{ uuid: string }>(REMOVE_FILE, request);
+      }
+    }
   };
 
   return (
@@ -149,9 +147,9 @@ const FileWatcher: FunctionComponent = () => {
           <SmallLabel>Insert the file for which you detect changes</SmallLabel>
         </HeaderTextArea>
         <AddFileButton onClick={openDialog}>+</AddFileButton>
+        <AddFileButton onClick={removeFileItem}>-</AddFileButton>
       </Header>
       <FileList files={files} selectedItemChanged={selectedItemChanged} />
-      <StopButton onClick={removeClick}> remove </StopButton>
     </Container>
   );
 };

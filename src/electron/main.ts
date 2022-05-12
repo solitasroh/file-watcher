@@ -1,4 +1,5 @@
 import { app, BrowserWindow, ipcMain, Menu, nativeImage, Tray } from 'electron';
+import update from 'update-electron-app';
 import { FileWatcherService } from './services/FileWatcherService';
 import TftpService from './services/tftp-service';
 import { IpcChannel } from './ipc/ipcChannel';
@@ -26,6 +27,9 @@ class Main {
   private ipcService: IpcService;
 
   init(ipcChannels: IpcChannel<IpcRequest>[]) {
+    
+    update();
+
     this.tftpService = new TftpService();
     this.fileWatcherService = FileWatcherService.getInstance();
 
@@ -87,7 +91,7 @@ class Main {
 
     this.mainWindow = new BrowserWindow({
       height: 600,
-      width: 360,
+      width: 380,
       webPreferences: {
         nodeIntegration: true,
         contextIsolation: false,
@@ -100,7 +104,7 @@ class Main {
     this.mainWindow.setMenuBarVisibility(false);
 
     // Open the DevTools.
-    this.mainWindow.webContents.openDevTools({ mode: 'detach' });
+    // this.mainWindow.webContents.openDevTools({ mode: 'detach' });
     this.ipcService = IpcService.getInstance();
     this.ipcService.registerCallback((channel, ...args) => {
       this.mainWindow.webContents.send(channel, ...args);

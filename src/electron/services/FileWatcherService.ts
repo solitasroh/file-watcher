@@ -15,7 +15,7 @@ export interface FileInfo {
 }
 
 // https://www.uuidgenerator.net/
-const MY_NAMESPACE = 'a10a9920-772b-42fa-b310-87aa154b87df';
+
 export class FileWatcherService {
   static TFTP_ROOT = path.join(app.getPath('userData'), '/tftpboot/');
 
@@ -104,7 +104,6 @@ export class FileWatcherService {
       const fileJson = JSON.stringify(this.files);
       fs.writeFileSync(FileWatcherService.FILE_INFO, fileJson);
     } catch (error) {
-      console.log(error);
       return false;
     }
     return true;
